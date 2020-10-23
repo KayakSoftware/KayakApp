@@ -1,9 +1,22 @@
+import React from "react";
+import Service from '../Services/tripService'
 import axios from "../configurations/networkClient";
 import React, { useEffect, useState } from "react";
 import { View, Text } from "react-native";
 import { Button } from 'react-native-paper';
 import { ActivityIndicator, Colors } from 'react-native-paper';
 
+const TripScreen = () => {
+    const getTrips = async () => {
+        let result = await Service.getTrips();
+        console.log(result);
+
+    }
+    const render = () => {
+        return <View>
+            <Button style={{width: "50%", marginTop: "5%"}} mode="contained" onPress={getTrips}>
+                Start Trip!
+            </Button>
 const TripScreen = ({navigation}) => {
 
     const [creatingTrip, setCreatingTrip] = useState(false);

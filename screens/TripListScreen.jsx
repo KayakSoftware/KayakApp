@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { SafeAreaView, View, FlatList, StyleSheet, Text, StatusBar } from 'react-native';
 import Sensor from "../components/Sensor";
-import { ActivityIndicator, Colors } from 'react-native-paper';
+import { ActivityIndicator, Button, Colors } from 'react-native-paper';
 
 import { List } from 'react-native-paper';
+import tripService from "../Services/tripService";
 
 const TripListScreen = ({navigation}) => {
-
+    
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState([]);
 
     useEffect(() => {
         downloadTrips()
     }, [])
-
+    
     const downloadTrips = async () => {
         setLoading(true);
 
@@ -33,10 +34,13 @@ const TripListScreen = ({navigation}) => {
                 {
                   id: '58694a0f-3da1-471f-bd96-145571e29d72',
                   title: 'Third Item',
+                  
                 },
             ])
         }, 2000)
     }
+
+    
 
     const renderItem = ({item}) => {
         return <List.Item onPress={() => navigation.navigate("TripOverview", {userId: item.id})} title={item.title}/>
