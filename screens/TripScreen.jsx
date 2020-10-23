@@ -6,18 +6,11 @@ import { View, Text } from "react-native";
 import { Button } from 'react-native-paper';
 import { ActivityIndicator, Colors } from 'react-native-paper';
 
-const TripScreen = () => {
+const TripScreen = ({navigation}) => {
     const getTrips = async () => {
         let result = await Service.getTrips();
         console.log(result);
-
     }
-    const render = () => {
-        return <View>
-            <Button style={{width: "50%", marginTop: "5%"}} mode="contained" onPress={getTrips}>
-                Start Trip!
-            </Button>
-const TripScreen = ({navigation}) => {
 
     const [creatingTrip, setCreatingTrip] = useState(false);
     const [currentTrip, setCurrentTrip] = useState()
@@ -81,7 +74,6 @@ const TripScreen = ({navigation}) => {
             </Button>
         }
     }
-
 
     const render = () => {
         return <View style={{display: "flex", justifyContent: "center", alignItems: "center", height: "100%"}}>
