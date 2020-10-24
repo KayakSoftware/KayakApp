@@ -1,3 +1,4 @@
+import Service from "../Services/tripService";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView, View, FlatList, StyleSheet, Text, StatusBar } from 'react-native';
 import Sensor from "../components/Sensor";
@@ -19,31 +20,14 @@ const TripListScreen = ({navigation}) => {
         setLoading(true);
 
         // Call api here to fetch trips
+        var result = await Service.getTrips();
+        setData(result)
 
-        setTimeout(() => {
-            setLoading(false)
-            setData([
-                {
-                  id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
-                  title: 'First Item',
-                },
-                {
-                  id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
-                  title: 'Second Item',
-                },
-                {
-                  id: '58694a0f-3da1-471f-bd96-145571e29d72',
-                  title: 'Third Item',
-                  
-                },
-            ])
-        }, 2000)
+        setLoading(false);
     }
 
-    
-
-    const renderItem = ({item}) => {
-        return <List.Item onPress={() => navigation.navigate("TripOverview", {userId: item.id})} title={item.title}/>
+    const renderItem = ({item, key}) => {
+        return <List.Item key={key} onPress={() => navigation.navigate("TripOverview", {tripId: item._id})} title={`${item.startTime}:${item.tripStatus}`}/>
     }
 
     const render = () => {

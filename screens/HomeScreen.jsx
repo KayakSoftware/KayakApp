@@ -1,9 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, Image, ImageBackground } from "react-native";
 import Sensor from "../components/Sensor";
 import { Button } from 'react-native-paper';
+import * as Location from 'expo-location';
 
 const HomeScreen = ({ navigation }) => {
+
+    useEffect(() => {
+        (async () => {
+            await Location.requestPermissionsAsync();
+          })();
+    }, [])
 
     const render = () => {
         return <View>
