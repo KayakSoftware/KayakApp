@@ -3,6 +3,8 @@ import { View, Text, Dimensions } from 'react-native'
 import MapView from 'react-native-maps';
 import { Button } from 'react-native-paper';
 import StopWatch from 'react-native-stopwatch-timer/lib/stopwatch';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
+import { faPlayCircle } from '@fortawesome/free-solid-svg-icons'
 
 const TrackingScreen = () => {
 
@@ -25,11 +27,11 @@ const TrackingScreen = () => {
                 </View>
             </View>
             <View>
-                <MapView style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height-150}}>
+                <MapView style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height-150, zIndex:1}}>
 
                 </MapView>
-                <Button style={{width:100, height:100}}>
-                    Start Trip
+                <Button style={{width:200, justifyContent:"center", alignSelf:"center", height:200, zIndex:16, bottom: 100, position:"absolute", backgroundColor:"#00fc04", borderRadius:"100%"}}>
+                    <FontAwesomeIcon icon={faPlayCircle} size={150} />
                 </Button>
             </View>
         </View>
