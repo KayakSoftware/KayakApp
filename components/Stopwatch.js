@@ -5,31 +5,29 @@ import CountDown from 'react-native-countdown-component';
 import React, { Component } from 'react';
 import { AppRegistry, StyleSheet,Text,View, TouchableHighlight } from 'react-native';
 import { Stopwatch, Timer } from 'react-native-stopwatch-timer';
-//import moment to help you play with date and time
-import moment from 'moment';
 
 class TestStopwatch extends Component {
-    constructor(props) {
-      super(props);
-      this.state = {
-        timerStart: false,
-        stopwatchStart: false,
-        totalDuration: 90000,
-        timerReset: false,
-        stopwatchReset: false,
-      };
-      this.toggleTimer = this.toggleTimer.bind(this);
-      this.resetTimer = this.resetTimer.bind(this);
-      this.toggleStopwatch = this.toggleStopwatch.bind(this);
-      this.resetStopwatch = this.resetStopwatch.bind(this);
-    }
+  constructor(props) {
+    super(props);
+    this.state = {
+      timerStart: false,
+      stopwatchStart: false,
+      totalDuration: 90000,
+      timerReset: false,
+      stopwatchReset: false,
+    };
+    this.toggleTimer = this.toggleTimer.bind(this);
+    this.resetTimer = this.resetTimer.bind(this);
+    this.toggleStopwatch = this.toggleStopwatch.bind(this);
+    this.resetStopwatch = this.resetStopwatch.bind(this);
+  }
 
     componentDidMount() {
         this.toggleStopwatch()
     }
    
     toggleTimer() {
-      this.setState({timerStart: !this.state.timerStart, timerReset: false});
+      this.setState({ timerStart: !this.state.timerStart, timerReset: false });
     }
    
     resetTimer() {
@@ -50,12 +48,11 @@ class TestStopwatch extends Component {
    
     render() {
       return (
-        <View style={{alignItems: "center"}}>
+        <View style={{alignItems: "center", display: "flex", justifyContent: "center", alignContent: "center"}}>
           <Stopwatch laps start={this.state.stopwatchStart}
             reset={this.state.stopwatchReset}
             options={options}
-            style={{backgroundColor: "white"}}
-            />
+          />
         </View>
       );
     }
@@ -64,13 +61,12 @@ class TestStopwatch extends Component {
   const options = {
     container: {
       backgroundColor: '#ffffff',
-      padding: 0,
-      borderRadius: 0,
-      width: 100,
+      width: 90,
     },
     text: {
-      fontSize: 20,
-      marginLeft: 7,
+      fontSize: 18,
+      marginLeft: 0,
+      textAlign: "center"
     }
   };
 
