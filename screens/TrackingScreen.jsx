@@ -5,6 +5,7 @@ import { Button } from 'react-native-paper';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import { faPlayCircle } from '@fortawesome/free-solid-svg-icons'
 import StopWatch from "../components/Stopwatch";
+import DistanceManager from '../components/DistanceManager';
 
 const TrackingScreen = () => {
 
@@ -19,7 +20,7 @@ const TrackingScreen = () => {
                 <View style={{display: "flex", width: "100%", flexDirection: "row", justifyContent: "space-between", alignContent: "center", alignItems: "center"}}>
                     <View style={{textAlign: "center"}}>
                         <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Distance</Text>
-                        <Text style={{textAlign: "center"}}>9.55 km</Text>
+                        <DistanceManager></DistanceManager>
                     </View>
                     <View>
                         <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Duration</Text>
