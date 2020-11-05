@@ -1,7 +1,7 @@
 import Service from "../Services/tripService";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView, View, FlatList, StyleSheet, Text, StatusBar } from 'react-native';
-import Sensor from "../components/Sensor";
+import Sensor from "../components/AccelerometerSensor";
 import { ActivityIndicator, Button, Colors } from 'react-native-paper';
 
 import { List } from 'react-native-paper';

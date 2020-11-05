@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { View, Text, Image, ImageBackground } from "react-native";
-import Sensor from "../components/Sensor";
+//import Sensor from "../components/AccelerometerSensor";
 import { Button } from 'react-native-paper';
 import * as Location from 'expo-location';
 

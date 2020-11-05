@@ -6,7 +6,7 @@ import TripListScreen from "./screens/TripListScreen";
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import TripOverviewScreen from './screens/TripOverviewScreen';
-import TripScreen from './screens/TripScreen';
+import TripScreen from './screens/TrackingScreen';
 
 const Stack = createStackNavigator();
 

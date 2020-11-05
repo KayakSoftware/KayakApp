@@ -4,7 +4,7 @@ import { View, Text, Alert } from "react-native";
 import { Button } from 'react-native-paper';
 import { ActivityIndicator, Colors } from 'react-native-paper';
 import Stopwatch from '../components/Stopwatch';
-import Sensor from '../components/Sensor';
+//import Sensor from '../components/AccelerometerSensor';
 import GPS from '../components/Gps';
 
 const TripScreen = ({navigation}) => {
