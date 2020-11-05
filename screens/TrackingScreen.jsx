@@ -1,19 +1,40 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, Dimensions } from 'react-native'
 import MapView from 'react-native-maps';
-import { Button } from 'react-native-paper';
+import { Button, PaperProvider } from 'react-native-paper';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faPlayCircle } from '@fortawesome/free-solid-svg-icons';
+import { faPlayCircle, faCoffee , faWater, faMountain, faQuestionCircle} from '@fortawesome/free-solid-svg-icons';
 import StopWatch from "../components/Stopwatch";
 import DistanceManager from '../components/DistanceManager';
-
 
 const TrackingScreen = () => {
 
     const watch = React.createRef();
     const [startTime, setStartTime] = useState()
     const [endTime, setEndTime] = useState()
-    const [elapsedTime, setElapsedTime] = useState(0);
+    const [activity, setActivity] = useState(1)
+
+    const getActivityIcon = () => {
+        switch (1) {
+            case 1:
+                return faMountain;
+            case 2:
+                return faWater;
+            default:
+                return faQuestionCircle;
+        }
+    }
+
+    const getActivityColor = () => {
+        switch (1) {
+            case 1:
+                return "#8B4513";
+            case 2:
+                return "blue";
+            default:
+                return "#000";
+        }
+    }
 
     return (
         <View style={{alignItems:"center", flex:1 }}>
@@ -21,15 +42,21 @@ const TrackingScreen = () => {
                 <View style={{display: "flex", width: "100%", flexDirection: "row", justifyContent: "space-between", alignContent: "center", alignItems: "center"}}>
                     <View style={{textAlign: "center"}}>
                         <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Distance</Text>
-                        <DistanceManager></DistanceManager>
+                        <View style={{paddingTop: 5}}>
+                            <DistanceManager routeTrajectory={[]}></DistanceManager>
+                        </View>
                     </View>
                     <View>
                         <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Duration</Text>
-                        <StopWatch ref={watch} subscribeToTicks={(time) => setElapsedTime(time)}></StopWatch>
+                        <View style={{paddingTop: 5}}>
+                            <StopWatch ref={watch}></StopWatch>
+                        </View>
                     </View>
                     <View>
                         <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Activity</Text>
-                        <Text style={{textAlign: "center"}}>Land</Text>
+                        <View style={{width: "100%", alignItems: "center", paddingTop: 5}}>
+                            <FontAwesomeIcon size={25} color={getActivityColor()} icon={getActivityIcon()} />
+                        </View>
                     </View>
                 </View>
             </View>

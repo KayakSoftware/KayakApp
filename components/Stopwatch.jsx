@@ -46,7 +46,7 @@ class TestStopwatch extends React.Component {
     if(this.props.subscribeToMsecs)this.props.subscribeToMsecs(time)
   }
    
-    render() {
+  render() {
       return (
         <View style={{alignItems: "center", display: "flex", justifyContent: "center", alignContent: "center"}}>
           <Stopwatch laps start={this.state.stopwatchStart}
