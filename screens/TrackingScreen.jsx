@@ -44,6 +44,8 @@ const TrackingScreen = () => {
     const startTracking = () => {
         watch.current?.toggleStopwatch()
         //isTracking ? ture :  
+    }
+    
     const handleGpsInit = (location) => {
         if(location) {
             mapView.current?.animateToRegion({
@@ -91,13 +93,10 @@ const TrackingScreen = () => {
                 <TouchableOpacity activeOpacity={0.1} onPress={() => startTracking()} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 66, position:"absolute", borderRadius:"100%"}}>
                     <FontAwesomeIcon size={100} color={"#18b500"} icon={faPlayCircle} />
                 </TouchableOpacity>
-                <Pressable onPress={() => console.log("Hello")} style={{width:100,justifyContent:"center", backgroundColor:"black", alignSelf:"center", height:100, zIndex:2, bottom: 66, position:"absolute", borderRadius:"100%"}}>
-                    <FontAwesomeIcon size={100} color={"#18b500"} icon={faPlayCircle} />
-                </Pressable>
                 <GPS subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
             </View>
         </View>
     )
 }
 
-export default TrackingScreen
+export default TrackingScreen;
