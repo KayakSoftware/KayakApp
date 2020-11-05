@@ -6,13 +6,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faPlayCircle, faCoffee , faWater, faMountain, faQuestionCircle} from '@fortawesome/free-solid-svg-icons';
 import StopWatch from "../components/Stopwatch";
 import DistanceManager from '../components/DistanceManager';
+import GPS from '../components/Gps';
 
 const TrackingScreen = () => {
 
     const watch = React.createRef();
+    const mapView = React.createRef();
     const [startTime, setStartTime] = useState()
     const [endTime, setEndTime] = useState()
     const [activity, setActivity] = useState(1)
+    const [findInitLocation, setFindInitLocation] = useState();
 
     const getActivityIcon = () => {
         switch (1) {
@@ -36,6 +39,19 @@ const TrackingScreen = () => {
         }
     }
 
+    const handleGpsInit = (location) => {
+        if(location) {
+            mapView.current?.animateToRegion({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421
+            }, 1000)
+        } else {
+            console.log("Undefined location")
+        }
+    }
+
     return (
         <View style={{alignItems:"center", flex:1 }}>
             <View style={{padding: 30,backgroundColor:"#ffffff", height: 100, width:Dimensions.get('window').width, alignItems:"center", justifyContent: 'space-between', flexDirection: 'row', shadowColor: "#000", shadowOffset: {width: 0, height: 3}, shadowOpacity: 0.27, shadowRadius: 4.65, elevation: 6}}>
@@ -48,13 +64,9 @@ const TrackingScreen = () => {
                     </View>
                     <View>
                         <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Duration</Text>
-<<<<<<< HEAD
-                        <StopWatch ref={watch} ></StopWatch>
-=======
                         <View style={{paddingTop: 5}}>
                             <StopWatch ref={watch}></StopWatch>
                         </View>
->>>>>>> 54a5171b097b2d3398f56f365f154d4c3b999a1d
                     </View>
                     <View>
                         <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Activity</Text>
@@ -65,12 +77,16 @@ const TrackingScreen = () => {
                 </View>
             </View>
             <View>
-                <MapView style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height-150, zIndex:1}}>
+                <MapView 
+                ref={mapView} 
+                zoomEnabled={true}
+                style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height-150, zIndex:1}}>
 
                 </MapView>
-                <Pressable onPress={console.log("Hello")} style={{width:100,justifyContent:"center", backgroundColor:"black", alignSelf:"center", height:100, zIndex:2, bottom: 66, position:"absolute", borderRadius:"100%"}}>
+                <Pressable onPress={() => console.log("Hello")} style={{width:100,justifyContent:"center", backgroundColor:"black", alignSelf:"center", height:100, zIndex:2, bottom: 66, position:"absolute", borderRadius:"100%"}}>
                     <FontAwesomeIcon size={100} color={"#18b500"} icon={faPlayCircle} />
                 </Pressable>
+                <GPS subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
             </View>
         </View>
     )

@@ -22,12 +22,17 @@ class GPS extends React.Component {
               setErrorMsg('Permission to access location was denied');
             }
       
-            let location = await Location.getCurrentPositionAsync({});
-            this.setState({location: location})
-          })();
-
-          this.setSamplingFrequency(this.props.initialSamplingFrequency);
+            try {
+                let location = await Location.getCurrentPositionAsync({});
+                this.setState({location: location})
+                if(this.props.subscribeInitLocation)this.props.subscribeInitLocation(location)
+            } catch(err) {
+                console.error(err)
+                if(this.props.subscribeInitLocation)this.props.subscribeInitLocation(undefined);
+            }
+        })();
     }
+
 
     setSamplingFrequency = (frequencyInMillis) => {
         if(this.state.interval)clearInterval(this.state.interval);
@@ -50,11 +55,7 @@ class GPS extends React.Component {
     // Last known position or current?
 
     render = () => {
-        return <View style={styles.container}>
-            {this.state.location
-            ? <Text style={{textAlign: "center"}}>Longitude: {this.state.location.coords.longitude}, Latitude: {this.state.location.coords.latitude}, </Text>
-            : <Text style={{textAlign: "center"}}>Retreiving location...</Text>}
-        </View>
+        return <View></View>
     };
 }
 
