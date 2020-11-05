@@ -1,14 +1,16 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, Dimensions } from 'react-native'
 import MapView from 'react-native-maps';
 import { Button } from 'react-native-paper';
-import StopWatch from 'react-native-stopwatch-timer/lib/stopwatch';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import { faPlayCircle } from '@fortawesome/free-solid-svg-icons'
 import StopWatch from "../components/Stopwatch";
 
 const TrackingScreen = () => {
 
+    const watch = React.createRef();
+    const [startTime, setStartTime] = useState()
+    const [endTime, setEndTime] = useState()
     const [elapsedTime, setElapsedTime] = useState(0);
 
     return (
@@ -21,7 +23,7 @@ const TrackingScreen = () => {
                     </View>
                     <View>
                         <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Duration</Text>
-                        <StopWatch></StopWatch>
+                        <StopWatch ref={watch} subscribeToTicks={(time) => setElapsedTime(time)}></StopWatch>
                     </View>
                     <View>
                         <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Activity</Text>

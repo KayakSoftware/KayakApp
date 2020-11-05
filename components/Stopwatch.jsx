@@ -2,17 +2,17 @@
 
 //import CountDown to show the timer
 import CountDown from 'react-native-countdown-component';
-import React, { Component } from 'react';
+import React from 'react';
 import { AppRegistry, StyleSheet,Text,View, TouchableHighlight } from 'react-native';
 import { Stopwatch, Timer } from 'react-native-stopwatch-timer';
 
-class TestStopwatch extends Component {
+class TestStopwatch extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       timerStart: false,
       stopwatchStart: false,
-      totalDuration: 90000,
+      totalDuration: 900000000,
       timerReset: false,
       stopwatchReset: false,
     };
@@ -21,30 +21,30 @@ class TestStopwatch extends Component {
     this.toggleStopwatch = this.toggleStopwatch.bind(this);
     this.resetStopwatch = this.resetStopwatch.bind(this);
   }
+   
+  toggleTimer() {
+    this.setState({ timerStart: !this.state.timerStart, timerReset: false });
+  }
+  
+  resetTimer() {
+    this.setState({timerStart: false, timerReset: true});
+  }
+  
+  toggleStopwatch() {
+    this.setState({stopwatchStart: !this.state.stopwatchStart, stopwatchReset: false});
+  }
+  
+  resetStopwatch() {
+    this.setState({stopwatchStart: false, stopwatchReset: true});
+  }
+  
+  getFormattedTime(time) {
+    if(this.props.subscribeToTicks)this.props.subscribeToTicks(time);
+  };
 
-    componentDidMount() {
-        this.toggleStopwatch()
-    }
-   
-    toggleTimer() {
-      this.setState({ timerStart: !this.state.timerStart, timerReset: false });
-    }
-   
-    resetTimer() {
-      this.setState({timerStart: false, timerReset: true});
-    }
-   
-    toggleStopwatch() {
-      this.setState({stopwatchStart: !this.state.stopwatchStart, stopwatchReset: false});
-    }
-   
-    resetStopwatch() {
-      this.setState({stopwatchStart: false, stopwatchReset: true});
-    }
-    
-    getFormattedTime(time) {
-        this.currentTime = time;
-    };
+  getMsecTime(time) {
+    if(this.props.subscribeToMsecs)this.props.subscribeToMsecs(time)
+  }
    
     render() {
       return (
@@ -52,6 +52,8 @@ class TestStopwatch extends Component {
           <Stopwatch laps start={this.state.stopwatchStart}
             reset={this.state.stopwatchReset}
             options={options}
+            getTime={(time) => this.getFormattedTime(time)}
+            getMsecs={(time) => this.getMsecTime(time)}
           />
         </View>
       );
