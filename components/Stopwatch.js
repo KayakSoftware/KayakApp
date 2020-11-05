@@ -53,7 +53,9 @@ class TestStopwatch extends Component {
         <View style={{alignItems: "center"}}>
           <Stopwatch laps start={this.state.stopwatchStart}
             reset={this.state.stopwatchReset}
-            options={options}/>
+            options={options}
+            style={{backgroundColor: "white"}}
+            />
         </View>
       );
     }
@@ -61,14 +63,13 @@ class TestStopwatch extends Component {
    
   const options = {
     container: {
-      backgroundColor: '#000',
-      padding: 5,
-      borderRadius: 5,
-      width: 150,
+      backgroundColor: '#ffffff',
+      padding: 0,
+      borderRadius: 0,
+      width: 100,
     },
     text: {
-      fontSize: 30,
-      color: '#FFF',
+      fontSize: 20,
       marginLeft: 7,
     }
   };
