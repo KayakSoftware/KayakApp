@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, Dimensions } from 'react-native'
+import { View, Text, Dimensions, Pressable } from 'react-native'
 import MapView from 'react-native-maps';
-import { Button } from 'react-native-paper';
+import { Button, FAB } from 'react-native-paper';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faPlayCircle } from '@fortawesome/free-solid-svg-icons';
 import StopWatch from "../components/Stopwatch";
@@ -24,7 +24,7 @@ const TrackingScreen = () => {
                     </View>
                     <View>
                         <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Duration</Text>
-                        <StopWatch ref={watch} subscribeToTicks={(time) => setElapsedTime(time)}></StopWatch>
+                        <StopWatch ref={watch} ></StopWatch>
                     </View>
                     <View>
                         <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Activity</Text>
@@ -36,9 +36,9 @@ const TrackingScreen = () => {
                 <MapView style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height-150, zIndex:1}}>
 
                 </MapView>
-                <Button icon={"play-circle-outline"} loading={false}style={{width:200, justifyContent:"center", alignSelf:"center", height:200, zIndex:16, bottom: 66, position:"absolute", borderRadius:"100%"}}>
-                    
-                </Button>
+                <Pressable onPress={console.log("Hello")} style={{width:100,justifyContent:"center", backgroundColor:"black", alignSelf:"center", height:100, zIndex:2, bottom: 66, position:"absolute", borderRadius:"100%"}}>
+                    <FontAwesomeIcon size={100} color={"#18b500"} icon={faPlayCircle} />
+                </Pressable>
             </View>
         </View>
     )
