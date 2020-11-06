@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, Dimensions, Pressable, TouchableOpacity } from 'react-native'
+import { View, Text, Dimensions, Pressable, TouchableOpacity} from 'react-native'
 import MapView from 'react-native-maps';
 import { Button, FAB,PaperProvider } from 'react-native-paper';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faPlayCircle, faCoffee , faWater, faMountain, faQuestionCircle} from '@fortawesome/free-solid-svg-icons';
+import { faPlayCircle, faCoffee , faWater, faMountain, faQuestionCircle, faStopCircle} from '@fortawesome/free-solid-svg-icons';
 import StopWatch from "../components/Stopwatch";
 import DistanceManager from '../components/DistanceManager';
 import { render } from 'react-dom';
@@ -11,7 +11,7 @@ import GPS from '../components/Gps';
 
 const TrackingScreen = () => {
 
-    const isTracking = false;
+    const [tracking, setTracking] = useState(false);
     const watch = React.createRef();
     const mapView = React.createRef();
     const [startTime, setStartTime] = useState()
@@ -41,10 +41,7 @@ const TrackingScreen = () => {
         }
     }
 
-    const startTracking = () => {
-        watch.current?.toggleStopwatch()
-        //isTracking ? ture :  
-    }
+    
     
     const handleGpsInit = (location) => {
         if(location) {
@@ -56,6 +53,20 @@ const TrackingScreen = () => {
             }, 1000)
         } else {
             console.log("Undefined location")
+        }
+    }
+
+    const onPress = () => {
+        if(!tracking) {
+            watch.current?.toggleStopwatch();
+            setTracking(!tracking);
+        }
+    }
+
+    const onLongPress = () => {
+        if(tracking) {
+            watch.current?.toggleStopwatch();
+            setTracking(!tracking);
         }
     }
 
@@ -90,8 +101,10 @@ const TrackingScreen = () => {
                 style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height-150, zIndex:1}}>
 
                 </MapView>
-                <TouchableOpacity activeOpacity={0.1} onPress={() => startTracking()} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 66, position:"absolute", borderRadius:"100%"}}>
-                    <FontAwesomeIcon size={100} color={"#18b500"} icon={faPlayCircle} />
+                <TouchableOpacity activeOpacity={0.1} onLongPress={onLongPress} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 66, position:"absolute", borderRadius:"100%"}}>
+                
+                    <FontAwesomeIcon size={100} color={tracking ? "#d10202": "#18b500"} icon={tracking ? faStopCircle: faPlayCircle} />
+            
                 </TouchableOpacity>
                 <GPS subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
             </View>
