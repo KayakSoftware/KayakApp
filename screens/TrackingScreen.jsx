@@ -148,9 +148,13 @@ const TrackingScreen = () => {
                     strokeWidth={2}
                     /> : null}
                 </MapView>
-                <TouchableOpacity activeOpacity={0.1} onLongPress={(event) => onLongPress(event)} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
-                    <FontAwesomeIcon size={100} color={tracking ? "#d10202": "#18b500"} icon={tracking ? faStopCircle: faPlayCircle} />
+                {tracking 
+                ? <TouchableOpacity activeOpacity={0.1} onLongPress={(event) => onLongPress(event)} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
+                    <FontAwesomeIcon size={100} color={"#d10202"} icon={faStopCircle} />
                 </TouchableOpacity>
+                :<TouchableOpacity activeOpacity={0.1} onLongPress={(event) => onLongPress(event)} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
+                    <FontAwesomeIcon size={100} color={"#18b500"} icon={faPlayCircle} />
+                </TouchableOpacity>}
                 <GPS ref={gps} subscribeUpdates={location => onLocationUpdate(location)} subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
                 <Gyro ref={gyroscope} subscribeUpdates={movement => onMovementUpdate(movement)} />
             </View>
