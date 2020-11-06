@@ -3,12 +3,15 @@ import { View, Text, Image, ImageBackground } from "react-native";
 //import Sensor from "../components/AccelerometerSensor";
 import { Button } from 'react-native-paper';
 import * as Location from 'expo-location';
+import { Gyroscope } from 'expo-sensors';
 
 const HomeScreen = ({ navigation }) => {
 
     useEffect(() => {
         (async () => {
             await Location.requestPermissionsAsync();
+            
+            await Permissions.askAsync(Permissions.MOTION);
           })();
     }, [])
 

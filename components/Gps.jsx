@@ -53,6 +53,7 @@ class GPS extends React.Component {
     }
 
     stopSampling() {
+        console.log("gps stop")
         if(this.state.unsubscriptionHandler)this.state.unsubscriptionHandler.remove();
     }
 

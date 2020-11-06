@@ -31,6 +31,7 @@ class TestStopwatch extends React.Component {
   }
   
   toggleStopwatch() {
+    console.log("toggle")
     this.setState({stopwatchStart: !this.state.stopwatchStart, stopwatchReset: false});
   }
   
