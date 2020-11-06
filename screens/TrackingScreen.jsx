@@ -68,9 +68,6 @@ const TrackingScreen = () => {
             watch.current?.toggleStopwatch();
             setTracking(!tracking);
         }
-
-
-        
     }
 
     return (
