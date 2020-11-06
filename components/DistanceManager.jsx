@@ -16,7 +16,7 @@ const DistanceManager = (props) => {
             var currentPoint = [props.routeTrajectory[i].coords.longitude, props.routeTrajectory[i].coords.latitude]
             totalLength += turf(previousPoint, currentPoint, "kilometers")
         }
-        return totalLength;
+        return Math.floor(totalLength * 100) / 100;
     }
 
     const render = () => {
