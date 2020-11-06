@@ -51,9 +51,9 @@ const TrackingScreen = () => {
             mapView.current?.animateToRegion({
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421
-            }, 1000)
+                latitudeDelta: 0.0252,
+                longitudeDelta: 0.0081
+            }, 2500)
         } else {
             console.log("Undefined location")
         }
@@ -87,7 +87,12 @@ const TrackingScreen = () => {
                 <MapView 
                 ref={mapView} 
                 zoomEnabled={true}
-                style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height-150, zIndex:1}}>
+                showsUserLocation={true}
+                showsCompass={true}
+                showsMyLocationButton={true}
+                loadingEnabled={true}
+                onUserLocationChange={}
+                style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height - 165, zIndex:1, padding: 50}}>
 
                 </MapView>
                 <TouchableOpacity activeOpacity={0.1} onPress={() => startTracking()} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 66, position:"absolute", borderRadius:"100%"}}>
