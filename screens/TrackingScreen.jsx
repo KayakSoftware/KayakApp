@@ -91,7 +91,7 @@ const TrackingScreen = () => {
                 showsCompass={true}
                 showsMyLocationButton={true}
                 loadingEnabled={true}
-                onUserLocationChange={}
+                onUserLocationChange={() => console.log("Location change")}
                 style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height - 165, zIndex:1, padding: 50}}>
 
                 </MapView>
