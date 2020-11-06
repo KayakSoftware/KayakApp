@@ -61,6 +61,7 @@ const TrackingScreen = () => {
     
     const handleGpsInit = (location) => {
         if(location) {
+            setLastKnownLocation({latitude: location.coords.latitude, longitude: location.coords.longitude})
             mapView.current?.animateToRegion({
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude,
