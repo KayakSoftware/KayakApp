@@ -11,7 +11,9 @@ class GPS extends React.Component {
         this.state = {
             location: null,
             errorMsg: null,
-            interval: undefined
+            interval: 5000,
+            distanceInterval: 1,
+            unsubscriptionHandler: undefined
         }
     }
 
@@ -23,7 +25,7 @@ class GPS extends React.Component {
             }
       
             try {
-                let location = await Location.getCurrentPositionAsync({});
+                let location = await Location.getLastKnownPositionAsync({})
                 this.setState({location: location})
                 if(this.props.subscribeInitLocation)this.props.subscribeInitLocation(location)
             } catch(err) {
@@ -33,26 +35,26 @@ class GPS extends React.Component {
         })();
     }
 
+    startSampling() {
 
-    setSamplingFrequency = (frequencyInMillis) => {
-        if(this.state.interval)clearInterval(this.state.interval);
+        if(this.state.unsubscriptionHandler)this.state.unsubscriptionHandler()
 
-        let interval = setInterval(() => {
-            this.sample();
-        }, frequencyInMillis)
-        this.setState({interval: interval});
+        // Let the gps component determine the most appropriate, efficient and accurate way of sampling gps atm.
+        const unsubscribe = Location.watchPositionAsync({
+            accuracy: LocationAccuracy.High,
+            timeInterval: this.state.interval,
+            distanceInterval: this.state.distanceInterval,
+            mayShowUserSettingsDialog: true
+        },
+            (location) => {
+                if(this.props.subscribeUpdates)this.props.subscribeUpdates(location);
+            });
+        this.setState({unsubscriptionHandler: unsubscribe})
     }
 
-    sample = async () => {
-        if(this.props.subscribeSensorInput){
-            let location = await Location.getCurrentPositionAsync({})
-            this.setState({location: location})
-            this.props.subscribeSensorInput(location);
-        }
+    stopSampling() {
+        if(this.state.unsubscriptionHandler)this.state.unsubscriptionHandler();
     }
-    
-    // Accuracy
-    // Last known position or current?
 
     render = () => {
         return <View></View>

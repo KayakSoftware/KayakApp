@@ -11,9 +11,15 @@ import GPS from '../components/Gps';
 
 const TrackingScreen = () => {
 
-    const [tracking, setTracking] = useState(false);
     const watch = React.createRef();
     const mapView = React.createRef();
+    const gps = React.createRef();
+    const accelerometer = React.createRef();
+    const gyroscope = React.createRef();
+    const magnetometer = React.createRef();
+    
+    const [tracking, setTracking] = useState(false);
+    const [region, setRegion] = useState()
     const [startTime, setStartTime] = useState()
     const [endTime, setEndTime] = useState()
     const [activity, setActivity] = useState(1)
@@ -50,16 +56,18 @@ const TrackingScreen = () => {
                 longitude: location.coords.longitude,
                 latitudeDelta: 0.0252,
                 longitudeDelta: 0.0081
-            }, 2500)
+            }, 2000)
         } else {
             console.log("Undefined location")
         }
     }
 
-    const onPress = () => {
+    const onPress = (event) => {
         if(!tracking) {
             watch.current?.toggleStopwatch();
             setTracking(!tracking);
+            gps.current?.startSampling();
+            
         }
     }
 
@@ -67,7 +75,13 @@ const TrackingScreen = () => {
         if(tracking) {
             watch.current?.toggleStopwatch();
             setTracking(!tracking);
+
+            gps.stopSampling();
         }
+    }
+
+    const onLocationUpdate = (location) => {
+        console.log(location)
     }
 
     return (
@@ -95,23 +109,21 @@ const TrackingScreen = () => {
                 </View>
             </View>
             <View>
-                <MapView 
-                ref={mapView} 
+                <MapView
+                region={region}
+                ref={mapView}
                 zoomEnabled={true}
                 showsUserLocation={true}
                 showsCompass={true}
                 showsMyLocationButton={true}
                 loadingEnabled={true}
-                onUserLocationChange={() => console.log("Location change")}
+                //onUserLocationChange={(location) => onLocationUpdate(location.nativeEvent.coordinate)}
                 style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height - 165, zIndex:1, padding: 50}}>
-
                 </MapView>
-                <TouchableOpacity activeOpacity={0.1} onLongPress={onLongPress} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 66, position:"absolute", borderRadius:"100%"}}>
-                
+                <TouchableOpacity activeOpacity={0.1} onLongPress={onLongPress} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
                     <FontAwesomeIcon size={100} color={tracking ? "#d10202": "#18b500"} icon={tracking ? faStopCircle: faPlayCircle} />
-            
                 </TouchableOpacity>
-                <GPS subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
+                <GPS ref={gps} subscribeUpdates={location => onLocationUpdate(location)} subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
             </View>
         </View>
     )
