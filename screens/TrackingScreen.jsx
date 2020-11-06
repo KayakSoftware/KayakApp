@@ -88,6 +88,7 @@ const TrackingScreen = () => {
 
     const onLocationUpdate = (location) => {
         routeData.push(location)
+        console.log(location)
     }
 
     const preprocessCoordinates = () => {
@@ -137,12 +138,19 @@ const TrackingScreen = () => {
                 zoomEnabled={true}
                 showsUserLocation={true}
                 showsCompass={true}
-                showsMyLocationButton={true}
                 loadingEnabled={true}
                 //onUserLocationChange={(location) => onLocationUpdate(location.nativeEvent.coordinate)}
                 style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height - 165, zIndex:1, padding: 50}}>
-                    <Polyline coordinates={preprocessCoordinates()} strokeColor="#000">
-
+                    <Polyline coordinates={[
+                        { latitude: 55.8025259, longitude: 10.4351431 },
+                        { latitude: 56.7896386, longitude: 11.421646 },
+                        { latitude: 57.7665248, longitude: 12.4161628 },
+                        { latitude: 58.7734153, longitude: 13.4577787 },
+                        { latitude: 59.7948605, longitude: 14.4596065 },
+                        { latitude: 60.8025259, longitude: 15.4351431 }
+                    ]}
+                    strokeColor="#000" // fallback for when `strokeColors` is not supported by the map-provider
+                    strokeWidth={6}>
                     </Polyline>
                 </MapView>
                 <TouchableOpacity activeOpacity={0.1} onLongPress={onLongPress} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
