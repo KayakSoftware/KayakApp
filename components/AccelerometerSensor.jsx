@@ -36,110 +36,79 @@ class Sensor extends React.Component {
       super(props)
       this.state = {
         data: {},
+        subscription: undefined,
         kayakLine: 0
       }
     }
 
-    componentDidMount() {
-
-      // Read 
-      this._toggle();
-    }
-
     componentWillUnmount() {
-      this._unsubscribe();
+      this.unsubscribe
     }
 
-    _toggle = () => {
-      if (this._subscription) {
-        this._unsubscribe();
-      } else {
-        this._subscribe();
-      }
-    };
+    startSampling() {
+      this.setSampleRatePrSecond(60)
+      this.subscribe()
+    }
 
-    _slow = () => {
-      console.log("Do it slow")
-      Accelerometer.setUpdateInterval(1000);
-    };
+    stopSampling() {
+      this.unsubscribe()
+    }
 
-    _fast = () => {
-      console.log("Do it fast!")
-      Accelerometer.setUpdateInterval(16);
-    };
-
-    _setSampleRatePrSecond = (samplesPrSecond) => {
+    setSampleRatePrSecond = (samplesPrSecond) => {
       let sampleRate = 1000 / samplesPrSecond
       Accelerometer.setUpdateInterval(sampleRate)
     }
 
-    _setRefreshSpeed = (refreshRate) => {
-      Accelerometer.setUpdateInterval(refreshRate)
-    }
-
-    _subscribe = () => {
-      this._subscription = Accelerometer.addListener(accelerometerData => {
-        if(this.props.immitatingKayak) {
-          if(this.state.kayakLine === file.data.length) {
-            // reset counter to zero!
-            let kayakData = file.data[0];
-            this.setState({kayakLine: 1})
-            if(this.props.verboseSensor)this.setState({data: {
-              x: kayakData.xAxis,
-              y: kayakData.yAxis,
-              z: kayakData.zAxis
-            }})
-            if(this.props.subscribeSensorInput)this.props.subscribeSensorInput({
-              x: kayakData.xAxis,
-              y: kayakData.yAxis,
-              z: kayakData.zAxis
-            });
-          } else {
-            let kayakData = file.data[this.state.kayakLine]
-            this.setState({kayakLine: this.state.kayakLine + 1})
-            if(this.props.verboseSensor)this.setState({data: {
-              x: kayakData.xAxis,
-              y: kayakData.yAxis,
-              z: kayakData.zAxis
-            }})
-            if(this.props.subscribeSensorInput)this.props.subscribeSensorInput({
-              x: kayakData.xAxis,
-              y: kayakData.yAxis,
-              z: kayakData.zAxis
-            });
-          }
-        } else {
-          if(this.props.verboseSensor)this.setState({data: accelerometerData})
-          if(this.props.subscribeSensorInput)this.props.subscribeSensorInput(accelerometerData);
+    readKayakData = () => {
+      if(this.state.kayakLine === file.data.length) {
+        // reset counter to zero!
+        let kayakData = file.data[0];
+        this.setState({kayakLine: 1})
+        return {
+          x: kayakData.xAxis,
+          y: kayakData.yAxis,
+          z: kayakData.zAxis
         }
-      });
-    };
-
-    _unsubscribe = () => {
-      this._subscription && this._subscription.remove();
-      this._subscription = null;
-    };
-
-    round(n) {
-      if (!n) {
-        return 0;
+      } else {
+        let kayakData = file.data[this.state.kayakLine]
+        this.setState({kayakLine: this.state.kayakLine + 1})
+        return {
+          x: kayakData.xAxis,
+          y: kayakData.yAxis,
+          z: kayakData.zAxis
+        }
       }
-    
-      return Math.floor(n * 100) / 100;
     }
+
+    subscribe = () => {
+      this.unsubscribe();
+
+      const subscription = Accelerometer.addListener(accelerometerData => {
+          if(this.props.immitateKayak) {
+            if(this.props.subscribeUpdates)this.props.subscribeUpdates(this.readKayakData()); 
+          } else {
+            if(this.props.subscribeUpdates)this.props.subscribeUpdates(this.transformAccelerometerData(accelerometerData)); 
+          } 
+      });
+      this.setState({subscription: subscription})
+    };
+
+    transformAccelerometerData = (data) => {
+      return {
+        x: data.x * 9.82,
+        y: data.y * 9.82,
+        z: data.z * 9.82
+      }
+    }
+
+    unsubscribe = () => {
+      this.state.subscription && this.state.subscription.remove();
+      this.setState({subscription: null})
+    };
 
     render = () => {
-        let { x, y, z } = this.state.data
         return (
-            <View style={styles.sensor}>
-              { this.props.verboseSensor 
-              ? <Fragment>
-                <Text style={styles.text}>Accelerometer: (in Gs where 1 G = 9.81 m s^-2)</Text>
-                <Text style={styles.text}>
-                  x: {this.round(x)} y: {this.round(y)} z: {this.round(z)}
-                </Text>
-              </Fragment>
-              : null}
+            <View>
             </View>
           );
     }

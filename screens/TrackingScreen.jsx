@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react'
+import Service from '../Services/tripService'
 import { View, Text, Dimensions, Pressable, TouchableOpacity} from 'react-native'
 import MapView, {Polyline, Marker} from 'react-native-maps';
 import { Button, FAB,PaperProvider } from 'react-native-paper';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faPlayCircle, faCoffee , faWater, faMountain, faQuestionCircle, faStopCircle} from '@fortawesome/free-solid-svg-icons';
+import { faPlayCircle, faCoffee , faWater, faMountain, faQuestionCircle, faStopCircle, faStop} from '@fortawesome/free-solid-svg-icons';
 import StopWatch from "../components/Stopwatch";
 import DistanceManager from '../components/DistanceManager';
 import { render } from 'react-dom';
 import GPS from '../components/Gps';
-import Gyro from '../components/GyroSensor'
-import Magne from '../components/MagnetometerSensor';
+import Gyroscope from '../components/GyroSensor'
+import Magnetometer from '../components/MagnetometerSensor';
+import Accelerometer from "../components/AccelerometerSensor";
 
 const TrackingScreen = () => {
 
@@ -33,7 +35,9 @@ const TrackingScreen = () => {
     const [routeData, setRouteData] = useState([]) 
     const [requestUpdate, setRequestUpdate] = useState(0)
     const [lastKnownLocation, setLastKnownLocation] = useState(undefined)
+    const [immitateKayak, setImmitateKayak] = useState(false);
 
+    const [accelerometerBatch, setAccelerometerBatch] = useState([])
 
     const getActivityIcon = () => {
         switch (1) {
@@ -76,10 +80,14 @@ const TrackingScreen = () => {
             watch.current?.toggleStopwatch();
             gps.current?.startSampling();
             gyroscope.current?.startSampling();
+            magnetometer.current?.startSampling();
+            accelerometer.current?.startSampling();
         } else {
             watch.current?.toggleStopwatch();
             gps.current?.stopSampling();
             gyroscope.current?.stopSampling();
+            magnetometer.current?.stopSampling();
+            accelerometer.current?.stopSampling()
         }
         setTracking(!tracking)
     }
@@ -95,12 +103,40 @@ const TrackingScreen = () => {
         setRouteData([...routeData])
     }
 
-    const onMovementUpdate = (movement) => {
-        console.log("Movement: ",movement)
+    const onGyroUpdate = (angelVelocities) => {
+        //console.log(angelVelocities)
     }
 
-    const onMagneUpdate = (move) => {
-        console.log("magne movement: ",move)
+    const onMagUpdate = (magData) => {
+        //console.log(magData)
+    }
+
+    const onAccelerationUpdate = (accelerations) => {
+        accelerometerBatch.push(accelerations);
+        if(accelerometerBatch.length === 200) {
+            const requestData = accelerometerBatch;
+            setAccelerometerBatch([]);
+            predictActivity(requestData);
+        }
+    }
+
+    const predictActivity = async (accelerometerData) => {
+
+        var result = await Service.updateTripActivity("nothing", {accelerometerData: accelerometerData});
+        
+        var highestConfidence = undefined;
+
+        for(let i = 0; i < result.length; i++) {
+            if(!highestConfidence) {
+                highestConfidence = result[i]
+                continue
+            }
+
+            if(parseFloat(highestConfidence.confidence) < parseFloat(result[i].confidence)) {
+                highestConfidence = result[i]
+            }
+        }
+        setActivity(highestConfidence)
     }
 
     return (
@@ -108,7 +144,7 @@ const TrackingScreen = () => {
             <View style={{padding: 30,backgroundColor:"#ffffff", height: 100, width:Dimensions.get('window').width, alignItems:"center", justifyContent: 'space-between', flexDirection: 'row', shadowColor: "#000", shadowOffset: {width: 0, height: 3}, shadowOpacity: 0.27, shadowRadius: 4.65, elevation: 6}}>
                 <View style={{display: "flex", width: "100%", flexDirection: "row", justifyContent: "space-between", alignContent: "center", alignItems: "center"}}>
                     <View style={{textAlign: "center"}}>
-                        <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Distance</Text>
+                        <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Distance:</Text>
                         <View style={{paddingTop: 5}}>
                             <DistanceManager routeTrajectory={routeData}></DistanceManager>
                         </View>
@@ -120,7 +156,7 @@ const TrackingScreen = () => {
                         </View>
                     </View>
                     <View>
-                        <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Activity</Text>
+                        <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Activity: {activity ? activity.activity : null}</Text>
                         <View style={{width: "100%", alignItems: "center", paddingTop: 5}}>
                             <FontAwesomeIcon size={25} color={getActivityColor()} icon={getActivityIcon()} />
                         </View>
@@ -152,9 +188,13 @@ const TrackingScreen = () => {
                 :<TouchableOpacity activeOpacity={0.1} onPress={(event) => onPress(event)} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
                     <FontAwesomeIcon size={100} color={"#18b500"} icon={faPlayCircle} />
                 </TouchableOpacity>}
+                <TouchableOpacity activeOpacity={0.1} onPress={() => setImmitateKayak(!immitateKayak)} style={{width: 50,justifyContent:"left", height:50, zIndex:2, bottom: 0, right: 0, position:"absolute"}}>
+                    <FontAwesomeIcon size={50} color={"#18b500"} icon={faStopCircle} />
+                </TouchableOpacity>
                 <GPS ref={gps} subscribeUpdates={location => onLocationUpdate(location)} subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
-                <Gyro ref={gyroscope} subscribeUpdates={movement => onMovementUpdate(movement)} />
-                <Magne ref={magnetometer} subscribeUpdates={move => onMagneUpdate(move)} />
+                <Gyroscope ref={gyroscope} subscribeUpdates={angleVelocities => onGyroUpdate(angleVelocities)} />
+                <Magnetometer ref={magnetometer} subscribeUpdates={magData => onMagUpdate(magData)} />
+                <Accelerometer ref={accelerometer} immitateKayak={immitateKayak} subscribeUpdates={accelerations => onAccelerationUpdate(accelerations)}/>
             </View>
         </View>
     )

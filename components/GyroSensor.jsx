@@ -15,26 +15,30 @@ export default class Gyro extends Component {
     }
 
     startSampling() {
-        console.log("gyro stat")
+        
         if(Gyroscope.isAvailableAsync())
-            this._subscribeUpdates();
+            this.setSampleRatePrSecond(60)
+            this.subscribeUpdates();
     }
 
     stopSampling(){
-        console.log("stop gyro")
-        this._unsubscribeUpdates();
+        this.unsubscribeUpdates();
     }
 
-    _subscribeUpdates() {
+    setSampleRatePrSecond = (samplesPrSecond) => {
+        let sampleRate = 1000 / samplesPrSecond
+        Gyroscope.setUpdateInterval(sampleRate)
+      }
+
+    subscribeUpdates() {
         var gyroHandler = Gyroscope.addListener(gyroData => {
             this.setState({data: gyroData})
-            //console.log("gyro after:", this.state.data)
+            if(this.props.subscribeUpdates)this.props.subscribeUpdates(this.state.data);
         })
         this.setState({gyroHandler:gyroHandler});
-        if(this.props.subscribeUpdates)this.props.subscribeUpdates(this.state.data);
     }
 
-    _unsubscribeUpdates() {
+    unsubscribeUpdates() {
         if (this.state.gyroHandler)
         {
             Gyroscope.removeAllListeners();

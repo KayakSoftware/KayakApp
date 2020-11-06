@@ -15,23 +15,20 @@ export default class MagnetometerSensor extends Component {
     }
 
     startSampling() {
-        console.log("magne start")
         if(Magnetometer.isAvailableAsync())
             this._subscribeUpdates();
     }
 
     stopSampling(){
-        console.log("magne un")
         this._unsubscribeUpdates();
     }
 
     _subscribeUpdates() {
-        /*var magHandler = Magnetometer.addListener(magneData => {
+        var magHandler = Magnetometer.addListener(magneData => {
             this.setState({data: magneData})
-            //console.log("helle")
+            if(this.props.subscribeUpdates)this.props.subscribeUpdates(this.state.data);
         })
         this.setState({magHandler:magHandler});
-        if(this.props.subscribeUpdates)this.props.subscribeUpdates(this.state.data);*/
     }
 
     _unsubscribeUpdates() {
