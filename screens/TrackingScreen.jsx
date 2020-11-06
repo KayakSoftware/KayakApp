@@ -9,6 +9,7 @@ import DistanceManager from '../components/DistanceManager';
 import { render } from 'react-dom';
 import GPS from '../components/Gps';
 import Gyro from '../components/GyroSensor'
+import Magne from '../components/MagnetometerSensor';
 
 const TrackingScreen = () => {
 
@@ -75,11 +76,11 @@ const TrackingScreen = () => {
         if(!tracking) {
             watch.current?.toggleStopwatch();
             gps.current?.startSampling();
-            //gyroscope.current?.startSampling();
+            gyroscope.current?.startSampling();
         } else {
             watch.current?.toggleStopwatch();
             gps.current?.stopSampling();
-            //gyroscope.current?.stopSampling();
+            gyroscope.current?.stopSampling();
         }
         setTracking(!tracking)
     }
@@ -102,7 +103,11 @@ const TrackingScreen = () => {
     }
 
     const onMovementUpdate = (movement) => {
-        //console.log(movement)
+        console.log("Movement: ",movement)
+    }
+
+    const onMagneUpdate = (move) => {
+        console.log("magne movement: ",move)
     }
 
     return (
@@ -154,6 +159,7 @@ const TrackingScreen = () => {
                 </TouchableOpacity>}
                 <GPS ref={gps} subscribeUpdates={location => onLocationUpdate(location)} subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
                 <Gyro ref={gyroscope} subscribeUpdates={movement => onMovementUpdate(movement)} />
+                <Magne ref={magnetometer} subscribeUpdates={move => onMagneUpdate(move)} />
             </View>
         </View>
     )
