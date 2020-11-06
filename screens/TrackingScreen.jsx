@@ -56,18 +56,16 @@ const TrackingScreen = () => {
                 return "#000";
         }
     }
-
-    
     
     const handleGpsInit = (location) => {
         if(location) {
-            setLastKnownLocation({latitude: location.coords.latitude, longitude: location.coords.longitude})
             mapView.current?.animateToRegion({
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude,
                 latitudeDelta: 0.0252,
                 longitudeDelta: 0.0081
             }, 2000)
+            setLastKnownLocation({latitude: location.coords.latitude, longitude: location.coords.longitude})
         } else {
             console.log("Undefined location")
         }
@@ -95,12 +93,6 @@ const TrackingScreen = () => {
         })*/
         setLastKnownLocation({latitude: location.coords.latitude, longitude: location.coords.longitude});
         setRouteData([...routeData])
-    }
-
-    const preprocessCoordinates = () => {
-        return routeData.map(ele => {
-            return {latitude: ele.coords.latitude, longitude: ele.coords.longitude}
-        })
     }
 
     const onMovementUpdate = (movement) => {
@@ -145,7 +137,9 @@ const TrackingScreen = () => {
                 loadingEnabled={true}
                 style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height - 165, zIndex:1, padding: 50}}>
                     { tracking ? <Polyline 
-                    coordinates={preprocessCoordinates()}
+                    coordinates={routeData.map(ele => {
+                        return {latitude: ele.coords.latitude, longitude: ele.coords.longitude}
+                    })}
                     strokeColor="#000"
                     strokeWidth={2}
                     /> : null}
