@@ -15,8 +15,8 @@ export default class Gyro extends Component {
 
     startSampling() {
         console.log("Gyro")
-        if(Gyroscope.isAvailableAsync)
-            this._subscribeUpdates();
+        /*if(Gyroscope.isAvailableAsync)
+            this._subscribeUpdates();*/
     }
 
     stopSampling(){

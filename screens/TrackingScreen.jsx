@@ -9,7 +9,6 @@ import DistanceManager from '../components/DistanceManager';
 import { render } from 'react-dom';
 import GPS from '../components/Gps';
 import Gyro from '../components/GyroSensor'
-import { Polyline } from 'react-native-svg';
 
 const TrackingScreen = () => {
 
@@ -26,7 +25,9 @@ const TrackingScreen = () => {
     const [endTime, setEndTime] = useState()
     const [activity, setActivity] = useState(1)
     const [findInitLocation, setFindInitLocation] = useState();
-    const [routeData] = useState([]) 
+    const [routeData, setRouteData] = useState([]) 
+    const [requestUpdate, setRequestUpdate] = useState(0)
+
 
     const getActivityIcon = () => {
         switch (1) {
@@ -71,40 +72,40 @@ const TrackingScreen = () => {
             setTracking(!tracking);
             gps.current?.startSampling();
             gyroscope.current?.startSampling();
-            
         }
+
+        //console.log("on press")
+        //console.log(gps.current)
+        //console.log(gyroscope.current)
+
     }
 
-    const onLongPress = () => {
+    const onLongPress = (event) => {
+        //console.log("OnLongPress")
+        //console.log(gps.current)
+        //console.log(gyroscope.current)
+
         if(tracking) {
             watch.current?.toggleStopwatch();
             setTracking(!tracking);
             gyroscope.current?.stopSampling();
-            
-
             gps.current?.stopSampling();
         }
     }
 
     const onLocationUpdate = (location) => {
         routeData.push(location)
-        console.log(location)
+        setRouteData([...routeData])
     }
 
     const preprocessCoordinates = () => {
-        const processedCoordinates = []
-
-        for(let i = 0; i < routeData.length; i++) {
-            processedCoordinates.push({
-                latitude: routeData[i].coords.latitude, longitude: routeData[i].coords.longitude
-            })
-        }
-        console.log(processedCoordinates)
-        return processedCoordinates;
+        return routeData.map(ele => {
+            return {latitude: ele.coords.latitude, longitude: ele.coords.longitude}
+        })
     }
 
     const onMovementUpdate = (movement) => {
-        console.log(movement)
+        //console.log(movement)
     }
 
     return (
@@ -141,11 +142,13 @@ const TrackingScreen = () => {
                 loadingEnabled={true}
                 //onUserLocationChange={(location) => onLocationUpdate(location.nativeEvent.coordinate)}
                 style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height - 165, zIndex:1, padding: 50}}>
-                    <Polyline>
-
-                    </Polyline>
+                    { tracking ? <Polyline 
+                    coordinates={preprocessCoordinates()}
+                    strokeColor="#000"
+                    strokeWidth={2}
+                    /> : null}
                 </MapView>
-                <TouchableOpacity activeOpacity={0.1} onLongPress={onLongPress} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
+                <TouchableOpacity activeOpacity={0.1} onLongPress={(event) => onLongPress(event)} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
                     <FontAwesomeIcon size={100} color={tracking ? "#d10202": "#18b500"} icon={tracking ? faStopCircle: faPlayCircle} />
                 </TouchableOpacity>
                 <GPS ref={gps} subscribeUpdates={location => onLocationUpdate(location)} subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
