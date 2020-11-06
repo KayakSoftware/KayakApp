@@ -8,6 +8,8 @@ import StopWatch from "../components/Stopwatch";
 import DistanceManager from '../components/DistanceManager';
 import { render } from 'react-dom';
 import GPS from '../components/Gps';
+import Gyro from '../components/GyroSensor'
+import { Polyline } from 'react-native-svg';
 
 const TrackingScreen = () => {
 
@@ -68,6 +70,8 @@ const TrackingScreen = () => {
             watch.current?.toggleStopwatch();
             setTracking(!tracking);
             gps.current?.startSampling();
+            gyroscope.current?.startSampling();
+            
         }
     }
 
@@ -75,6 +79,8 @@ const TrackingScreen = () => {
         if(tracking) {
             watch.current?.toggleStopwatch();
             setTracking(!tracking);
+            gyroscope.current?.stopSampling();
+            
 
             gps.current?.stopSampling();
         }
@@ -95,6 +101,10 @@ const TrackingScreen = () => {
         }
         console.log(processedCoordinates)
         return processedCoordinates;
+    }
+
+    const onMovementUpdate = (movement) => {
+        console.log(movement)
     }
 
     return (
@@ -139,6 +149,7 @@ const TrackingScreen = () => {
                     <FontAwesomeIcon size={100} color={tracking ? "#d10202": "#18b500"} icon={tracking ? faStopCircle: faPlayCircle} />
                 </TouchableOpacity>
                 <GPS ref={gps} subscribeUpdates={location => onLocationUpdate(location)} subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
+                <Gyro ref={gyroscope} subscribeUpdates={movement => onMovementUpdate(movement)} />
             </View>
         </View>
     )
