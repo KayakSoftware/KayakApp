@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, Dimensions, Pressable, TouchableOpacity} from 'react-native'
-import MapView, {Polyline} from 'react-native-maps';
+import MapView, {Polyline, Marker} from 'react-native-maps';
 import { Button, FAB,PaperProvider } from 'react-native-paper';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faPlayCircle, faCoffee , faWater, faMountain, faQuestionCircle, faStopCircle} from '@fortawesome/free-solid-svg-icons';
@@ -20,6 +20,10 @@ const TrackingScreen = () => {
     const gyroscope = React.createRef();
     const magnetometer = React.createRef();
     
+    // Simple state
+    const useCustomMarker = true
+
+    // Transient state
     const [tracking, setTracking] = useState(false);
     const [region, setRegion] = useState()
     const [startTime, setStartTime] = useState()
@@ -28,6 +32,7 @@ const TrackingScreen = () => {
     const [findInitLocation, setFindInitLocation] = useState();
     const [routeData, setRouteData] = useState([]) 
     const [requestUpdate, setRequestUpdate] = useState(0)
+    const [lastKnownLocation, setLastKnownLocation] = useState(undefined)
 
 
     const getActivityIcon = () => {
@@ -70,33 +75,24 @@ const TrackingScreen = () => {
     const onPress = (event) => {
         if(!tracking) {
             watch.current?.toggleStopwatch();
-            setTracking(!tracking);
             gps.current?.startSampling();
             gyroscope.current?.startSampling();
-            magnetometer.current?.startSampling();
-        }
-
-        //console.log("on press")
-        //console.log(gps.current)
-        //console.log(gyroscope.current)
-
-    }
-
-    const onLongPress = (event) => {
-        //console.log(gps.current)
-        //console.log(gyroscope.current)
-        if(tracking) {
-            console.log("inside")
+        } else {
             watch.current?.toggleStopwatch();
-            gyroscope.current?.stopSampling();
             gps.current?.stopSampling();
-            magnetometer.current?.stopSampling();
-            setTracking(!tracking);
+            gyroscope.current?.stopSampling();
         }
+        setTracking(!tracking)
     }
 
     const onLocationUpdate = (location) => {
         routeData.push(location)
+        // If the screen should follow the user
+        /*mapView.current?.animateToRegion({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+        })*/
+        setLastKnownLocation({latitude: location.coords.latitude, longitude: location.coords.longitude});
         setRouteData([...routeData])
     }
 
@@ -121,7 +117,7 @@ const TrackingScreen = () => {
                     <View style={{textAlign: "center"}}>
                         <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Distance</Text>
                         <View style={{paddingTop: 5}}>
-                            <DistanceManager routeTrajectory={[]}></DistanceManager>
+                            <DistanceManager routeTrajectory={routeData}></DistanceManager>
                         </View>
                     </View>
                     <View>
@@ -143,22 +139,22 @@ const TrackingScreen = () => {
                 region={region}
                 ref={mapView}
                 zoomEnabled={true}
-                showsUserLocation={true}
+                showsUserLocation={!useCustomMarker}
                 showsCompass={true}
                 loadingEnabled={true}
-                //onUserLocationChange={(location) => onLocationUpdate(location.nativeEvent.coordinate)}
                 style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height - 165, zIndex:1, padding: 50}}>
                     { tracking ? <Polyline 
                     coordinates={preprocessCoordinates()}
                     strokeColor="#000"
                     strokeWidth={2}
                     /> : null}
+                    { useCustomMarker && lastKnownLocation ? <Marker coordinate={lastKnownLocation} image={require('../assets/blueDot.png')}/> : null}
                 </MapView>
                 {tracking 
-                ? <TouchableOpacity activeOpacity={0.1} onLongPress={(event) => onLongPress(event)} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
+                ? <TouchableOpacity activeOpacity={0.1} onPress={e => onPress(e)} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
                     <FontAwesomeIcon size={100} color={"#d10202"} icon={faStopCircle} />
                 </TouchableOpacity>
-                :<TouchableOpacity activeOpacity={0.1} onLongPress={(event) => onLongPress(event)} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
+                :<TouchableOpacity activeOpacity={0.1} onPress={(event) => onPress(event)} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
                     <FontAwesomeIcon size={100} color={"#18b500"} icon={faPlayCircle} />
                 </TouchableOpacity>}
                 <GPS ref={gps} subscribeUpdates={location => onLocationUpdate(location)} subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
