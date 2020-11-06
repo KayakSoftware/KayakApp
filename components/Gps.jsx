@@ -36,24 +36,24 @@ class GPS extends React.Component {
     }
 
     startSampling() {
-
-        if(this.state.unsubscriptionHandler)this.state.unsubscriptionHandler()
+        if(this.state.unsubscriptionHandler)this.state.unsubscriptionHandler.remove()
 
         // Let the gps component determine the most appropriate, efficient and accurate way of sampling gps atm.
-        const unsubscribe = Location.watchPositionAsync({
+        Location.watchPositionAsync({
             accuracy: LocationAccuracy.High,
             timeInterval: this.state.interval,
             distanceInterval: this.state.distanceInterval,
             mayShowUserSettingsDialog: true
-        },
-            (location) => {
+        }, (location) => {
                 if(this.props.subscribeUpdates)this.props.subscribeUpdates(location);
-            });
-        this.setState({unsubscriptionHandler: unsubscribe})
+        }
+        ).then(unsubscribeHandler => {
+            this.setState({unsubscriptionHandler: unsubscribeHandler})
+        }).catch(err => console.error(err));
     }
 
     stopSampling() {
-        if(this.state.unsubscriptionHandler)this.state.unsubscriptionHandler();
+        if(this.state.unsubscriptionHandler)this.state.unsubscriptionHandler.remove();
     }
 
     render = () => {

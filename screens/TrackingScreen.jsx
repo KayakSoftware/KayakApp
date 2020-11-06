@@ -9,6 +9,7 @@ import DistanceManager from '../components/DistanceManager';
 import { render } from 'react-dom';
 import GPS from '../components/Gps';
 import Gyro from '../components/GyroSensor'
+import { Polyline } from 'react-native-svg';
 
 const TrackingScreen = () => {
 
@@ -25,6 +26,7 @@ const TrackingScreen = () => {
     const [endTime, setEndTime] = useState()
     const [activity, setActivity] = useState(1)
     const [findInitLocation, setFindInitLocation] = useState();
+    const [routeData] = useState([]) 
 
     const getActivityIcon = () => {
         switch (1) {
@@ -77,13 +79,27 @@ const TrackingScreen = () => {
         if(tracking) {
             watch.current?.toggleStopwatch();
             setTracking(!tracking);
-            gyroscope.stopSampling();
-            gps.stopSampling();
+            gyroscope.current?.stopSampling();
+            
+
+            gps.current?.stopSampling();
         }
     }
 
     const onLocationUpdate = (location) => {
-        console.log(location)
+        routeData.push(location)
+    }
+
+    const preprocessCoordinates = () => {
+        const processedCoordinates = []
+
+        for(let i = 0; i < routeData.length; i++) {
+            processedCoordinates.push({
+                latitude: routeData[i].coords.latitude, longitude: routeData[i].coords.longitude
+            })
+        }
+        console.log(processedCoordinates)
+        return processedCoordinates;
     }
 
     const onMovementUpdate = (movement) => {
@@ -125,6 +141,9 @@ const TrackingScreen = () => {
                 loadingEnabled={true}
                 //onUserLocationChange={(location) => onLocationUpdate(location.nativeEvent.coordinate)}
                 style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height - 165, zIndex:1, padding: 50}}>
+                    <Polyline coordinates={preprocessCoordinates()} strokeColor="#000">
+
+                    </Polyline>
                 </MapView>
                 <TouchableOpacity activeOpacity={0.1} onLongPress={onLongPress} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
                     <FontAwesomeIcon size={100} color={tracking ? "#d10202": "#18b500"} icon={tracking ? faStopCircle: faPlayCircle} />
