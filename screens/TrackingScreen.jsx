@@ -149,7 +149,7 @@ const TrackingScreen = () => {
                     /> : null}
                 </MapView>
                 {tracking 
-                ? <TouchableOpacity activeOpacity={0.1} onLongPress={(event) => onLongPress(event)} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
+                ? <TouchableOpacity activeOpacity={0.1} onLongPress={(event) => onLongPress(event)} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
                     <FontAwesomeIcon size={100} color={"#d10202"} icon={faStopCircle} />
                 </TouchableOpacity>
                 :<TouchableOpacity activeOpacity={0.1} onLongPress={(event) => onLongPress(event)} onPress={onPress} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
