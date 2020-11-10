@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const isLocalhost = false;
+const isLocalhost = true;
 const baseUrl = `http://${isLocalhost ? "localhost" : "192.168.87.35"}:5555`
 
 export default {
@@ -17,8 +17,9 @@ export default {
     return result.data || undefined; 
   },
   endTrip: async (tripId) => {
-    console.log(tripId);
+    console.log("before")
     let result = await axios.put(`${baseUrl}/trips/${tripId}`);
+    console.log("Stop service res: ",result);
     return result.data;
   },
   updateTripActivity: async (tripId, tripData) => {
