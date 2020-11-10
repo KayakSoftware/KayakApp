@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const isLocalhost = true;
-const baseUrl = `http://${isLocalhost ? "localhost" : "192.168.87.35"}:5555`
+const isLocalhost = false;
+const baseUrl = `http://${isLocalhost ? "localhost" : "192.168.87.31"}:5555`
 
 export default {
   getTrips: async () => {
