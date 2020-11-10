@@ -80,9 +80,7 @@ const TrackingScreen = () => {
 
         if(!tracking) {
             let start = await TripService.createTrip();
-            if(start._id){
-                console.log(watch.current)
-                console.log(watch.current)
+            if(start._id) {
                 watch.current?.toggleStopwatch();
                 gps.current?.startSampling();
                 gyroscope.current?.startSampling();
@@ -96,6 +94,7 @@ const TrackingScreen = () => {
             }
         } else {
             let stop = await TripService.endTrip(tripID);
+            console.log(stop)
             if(stop) {
                 watch.current?.toggleStopwatch();
                 gps.current?.stopSampling();
@@ -135,8 +134,6 @@ const TrackingScreen = () => {
             location: location
         }
 
-        console.log(o)
-
         routeData.push(o)
         setLastKnownLocation({latitude: location.coords.latitude, longitude: location.coords.longitude});
         setRouteData([...routeData])
@@ -165,11 +162,9 @@ const TrackingScreen = () => {
     }
 
     const predictActivity = async (accelerometerData) => {
-        
-        console.log(routeData)
 
         var gps = routeData.filter(e => e.activity === "unknown")
-        var result = await Service.updateTripActivity("nothing", {
+        var result = await Service.updateTripActivity(tripID, {
             accelerometerData: accelerometerData,
             gpsData: gps
         });
