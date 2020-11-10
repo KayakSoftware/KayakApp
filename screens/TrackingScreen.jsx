@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Service from '../Services/tripService'
-import { View, Text, Dimensions, Pressable, TouchableOpacity} from 'react-native'
+import { View, Text, Dimensions, Alert, TouchableOpacity} from 'react-native'
 import MapView, {Polyline, Marker} from 'react-native-maps';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faPlayCircle, faTintSlash , faTint, faMountain, faQuestionCircle, faStopCircle, faStop, faShip, faWalking} from '@fortawesome/free-solid-svg-icons';
@@ -13,7 +13,7 @@ import Magnetometer from '../components/MagnetometerSensor';
 import Accelerometer from "../components/AccelerometerSensor";
 import { idText } from 'typescript';
 
-const TrackingScreen = () => {
+const TrackingScreen = ({navigation}) => {
 
     const watch = React.createRef();
     const mapView = React.createRef();
@@ -24,6 +24,7 @@ const TrackingScreen = () => {
     
     // Simple state
     const useCustomMarker = true
+    const initstate = [];
 
     // Transient state
     const [tripID, setTripID] = useState();
@@ -31,20 +32,46 @@ const TrackingScreen = () => {
     const [region, setRegion] = useState()
     const [startTime, setStartTime] = useState()
     const [endTime, setEndTime] = useState()
-    const [activity, setActivity] = useState(1)
+    const [activity, setActivity] = useState()
     const [findInitLocation, setFindInitLocation] = useState();
-    const [routeData, setRouteData] = useState([])
+    const [routeData, setRouteData] = useState(initstate)
     const [requestUpdate, setRequestUpdate] = useState(0)
     const [lastKnownLocation, setLastKnownLocation] = useState(undefined)
     const [immitateKayak, setImmitateKayak] = useState(false);
 
-    const [accelerometerBatch, setAccelerometerBatch] = useState([])
+    const [accelerometerBatch, setAccelerometerBatch] = useState(initstate)
+
+    React.useEffect(
+        () =>
+          navigation.addListener('beforeRemove', (e) => {
+            const action = e.data.action;
+            if (!tracking) {
+              return;
+            }
+    
+            e.preventDefault();
+    
+            Alert.alert(
+              'Trip is running !',
+              'You have to stop the tracking before leaving this screen',
+              [
+                { text: "Back", style: 'cancel', onPress: () => {} },
+                {
+                    text: 'End trip',
+                    style: 'destructive',
+                    onPress: () => {onPress() ,navigation.dispatch(action)},
+                  },
+              ]
+            );
+          }),
+        [tracking, navigation]
+      );
 
     const getActivityIcon = () => {
         switch (activity?.activity) {
-            case 1:
+            case "Walking":
                 return faWalking;
-            case 2:
+            case "Sailing":
                 return faShip;
             default:
                 return faQuestionCircle;
@@ -77,16 +104,13 @@ const TrackingScreen = () => {
     }
     
     const onPress = async (event) => {
-
         if(!tracking) {
+            console.log("start")
             let start = await TripService.createTrip();
-            if(start._id) {
-                watch.current?.toggleStopwatch();
-                gps.current?.startSampling();
-                gyroscope.current?.startSampling();
-                magnetometer.current?.startSampling();
-                accelerometer.current?.startSampling();
+            if(start._id){
+                sampling();
                 setTripID(start._id);
+                resetTripData();
                 setTracking(!tracking)
             }
             else {
@@ -96,20 +120,24 @@ const TrackingScreen = () => {
             let stop = await TripService.endTrip(tripID);
             console.log(stop)
             if(stop) {
-                watch.current?.toggleStopwatch();
-                gps.current?.stopSampling();
-                gyroscope.current?.stopSampling();
-                magnetometer.current?.stopSampling();
-                accelerometer.current?.stopSampling();
-                setTracking(!tracking)
+                sampling();
+                console.log(routeData.length + ":In end method: " +accelerometerBatch.length)
+                setTracking(!tracking);
+                console.log("stop")
             } else {
                 alert("something went wrong! ")
             }
         }
     }
 
-    const sampling = (toggle) => {
-        if(toggle)
+    const resetTripData = () => {
+        setRouteData(initstate);
+        setAccelerometerBatch(initstate);
+        console.log(routeData + " :In start method: " + accelerometerBatch)
+    }
+
+    const sampling = () => {
+        if(!tracking)
         {
             watch.current?.toggleStopwatch();
             gps.current?.startSampling();
@@ -133,6 +161,7 @@ const TrackingScreen = () => {
             activity: "unknown",
             location: location
         }
+
 
         routeData.push(o)
         setLastKnownLocation({latitude: location.coords.latitude, longitude: location.coords.longitude});
