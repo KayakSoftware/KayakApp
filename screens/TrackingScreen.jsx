@@ -13,39 +13,38 @@ import Magnetometer from '../components/MagnetometerSensor';
 import Accelerometer from "../components/AccelerometerSensor";
 import { idText } from 'typescript';
 
-const TrackingScreen = ({navigation}) => {
+class TrackingScreen extends React.Component {
 
-    const watch = React.createRef();
-    const mapView = React.createRef();
-    const gps = React.createRef();
-    const accelerometer = React.createRef();
-    const gyroscope = React.createRef();
-    const magnetometer = React.createRef();
+    watch = React.createRef();
+    mapView = React.createRef();
+    gps = React.createRef();
+    accelerometer = React.createRef();
+    gyroscope = React.createRef();
+    magnetometer = React.createRef();
     
     // Simple state
-    const useCustomMarker = true
-    const initstate = [];
+    useCustomMarker = true
+    accelerometerBatch = []
 
-    // Transient state
-    const [tripID, setTripID] = useState();
-    const [tracking, setTracking] = useState(false);
-    const [region, setRegion] = useState()
-    const [startTime, setStartTime] = useState()
-    const [endTime, setEndTime] = useState()
-    const [activity, setActivity] = useState()
-    const [findInitLocation, setFindInitLocation] = useState();
-    const [routeData, setRouteData] = useState(initstate)
-    const [requestUpdate, setRequestUpdate] = useState(0)
-    const [lastKnownLocation, setLastKnownLocation] = useState(undefined)
-    const [immitateKayak, setImmitateKayak] = useState(false);
+    constructor(props) {
+        super(props);
+        this.state = {
+            navigation: props.navigation,
+            tripId: undefined,
+            tracking: false,
+            region: undefined,
+            activity: undefined,
+            findInitLocation: undefined,
+            routeData: [],
+            lastKnownLocation: undefined,
+            immitateKayak: false
+        }
+    }
 
-    const [accelerometerBatch, setAccelerometerBatch] = useState(initstate)
-
-    React.useEffect(
-        () =>
-          navigation.addListener('beforeRemove', (e) => {
+    componentDidMount() {
+        this.state.navigation.addListener('beforeRemove', (e) => {
             const action = e.data.action;
-            if (!tracking) {
+            if (!this.state.tracking) {
               return;
             }
     
@@ -56,19 +55,18 @@ const TrackingScreen = ({navigation}) => {
               'You have to stop the tracking before leaving this screen',
               [
                 { text: "Back", style: 'cancel', onPress: () => {} },
-                {
+                /*{
                     text: 'End trip',
                     style: 'destructive',
                     onPress: () => {onPress() ,navigation.dispatch(action)},
-                  },
+                },*/
               ]
             );
-          }),
-        [tracking, navigation]
-      );
+        })
+    }
 
-    const getActivityIcon = () => {
-        switch (activity?.activity) {
+    getActivityIcon = () => {
+        switch (this.state.activity?.activity) {
             case "Walking":
                 return faWalking;
             case "Sailing":
@@ -78,8 +76,8 @@ const TrackingScreen = ({navigation}) => {
         }
     }
 
-    const getActivityColor = () => {
-        switch (activity?.activity) {
+    getActivityColor = () => {
+        switch (this.state.activity?.activity) {
             case 1:
                 return "#8B4513";
             case 2:
@@ -89,111 +87,89 @@ const TrackingScreen = ({navigation}) => {
         }
     }
     
-    const handleGpsInit = (location) => {
+    handleGpsInit = (location) => {
         if(location) {
-            mapView.current?.animateToRegion({
+            this.mapView.current?.animateToRegion({
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude,
                 latitudeDelta: 0.0252,
                 longitudeDelta: 0.0081
             }, 2000)
-            setLastKnownLocation({latitude: location.coords.latitude, longitude: location.coords.longitude})
+            this.setState({lastKnownLocation: {latitude: location.coords.latitude, longitude: location.coords.longitude}})
         } else {
             console.log("Undefined location")
         }
     }
     
-    const onPress = async (event) => {
-        if(!tracking) {
-            console.log("start")
+    onPress = async (event) => {
+
+        if(!this.state.tracking) {
             let start = await TripService.createTrip();
             if(start._id){
-                sampling();
-                setTripID(start._id);
-                resetTripData();
-                setTracking(!tracking)
+                this.accelerometerBatch = []
+                this.setState({tripID: start._id, routeData: [], tracking: !this.state.tracking, activity: undefined})
+                this.watch.current?.resetStopwatch();
+                this.watch.current?.toggleStopwatch();
+                this.gps.current?.startSampling();
+                this.gyroscope.current?.startSampling();
+                this.magnetometer.current?.startSampling();
+                this.accelerometer.current?.startSampling();
             }
             else {
                 alert("Tracking didn't start")
             }
         } else {
-            let stop = await TripService.endTrip(tripID);
-            console.log(stop)
+            let stop = await TripService.endTrip(this.state.tripID);
             if(stop) {
-                sampling();
-                console.log(routeData.length + ":In end method: " +accelerometerBatch.length)
-                setTracking(!tracking);
-                console.log("stop")
+                this.watch.current?.toggleStopwatch();
+                this.gps.current?.stopSampling();
+                this.gyroscope.current?.stopSampling();
+                this.magnetometer.current?.stopSampling();
+                this.accelerometer.current?.stopSampling();
+                this.setState({tracking: !this.state.tracking})
             } else {
                 alert("something went wrong! ")
             }
         }
     }
 
-    const resetTripData = () => {
-        setRouteData(initstate);
-        setAccelerometerBatch(initstate);
-        console.log(routeData + " :In start method: " + accelerometerBatch)
-    }
-
-    const sampling = () => {
-        if(!tracking)
-        {
-            watch.current?.toggleStopwatch();
-            gps.current?.startSampling();
-            gyroscope.current?.startSampling();
-            magnetometer.current?.startSampling();
-            accelerometer.current?.startSampling();
-        }
-        else
-        {
-            watch.current?.toggleStopwatch();
-            gps.current?.stopSampling();
-            gyroscope.current?.stopSampling();
-            magnetometer.current?.stopSampling();
-            accelerometer.current?.stopSampling();
-        }
-    }
-
-    const onLocationUpdate = (location) => {
+    onLocationUpdate = (location) => {
 
         const o = {
             activity: "unknown",
             location: location
         }
 
-
-        routeData.push(o)
-        setLastKnownLocation({latitude: location.coords.latitude, longitude: location.coords.longitude});
-        setRouteData([...routeData])
+        this.state.routeData.push(o)
+        this.setState({lastKnownLocation: {latitude: location.coords.latitude, longitude: location.coords.longitude}, routeData: [...this.state.routeData]});
     }
 
-    const onGyroUpdate = (angelVelocities) => {
+    onGyroUpdate = (angelVelocities) => {
         //console.log(angelVelocities)
     }
 
-    const onMagUpdate = (magData) => {
+    onMagUpdate = (magData) => {
         //console.log(magData)
     }
 
-    const onAccelerationUpdate = (accelerations) => {
-
-        //console.log(accelerations);
-        accelerometerBatch.push({
+    onAccelerationUpdate = (accelerations) => {
+        
+        this.accelerometerBatch.push({
             timestamp: new Date().getTime(),
             accelerations: accelerations
         });
-        if(accelerometerBatch.length === 200) { 
-            const requestData = accelerometerBatch;
-            setAccelerometerBatch([]);
-            predictActivity(requestData);
+
+        if(this.accelerometerBatch.length === 200) {
+            const requestData = this.accelerometerBatch;
+            this.accelerometerBatch = [];
+            this.predictActivity(requestData);
         }
     }
 
-    const predictActivity = async (accelerometerData) => {
+    predictActivity = async (accelerometerData) => {
 
-        var gps = routeData.filter(e => e.activity === "unknown")
-        var result = await Service.updateTripActivity(tripID, {
+        var gps = this.state.routeData.filter(e => e.activity === "unknown")
+        var result = await Service.updateTripActivity(this.state.tripID, {
             accelerometerData: accelerometerData,
             gpsData: gps
         });
@@ -210,15 +186,12 @@ const TrackingScreen = ({navigation}) => {
                 highestConfidence = result[i]
             }
         }
-        setActivity(highestConfidence)
-        console.log(highestConfidence.activity)
+        this.setState({activity: highestConfidence});
         let endTime = accelerometerData[accelerometerData.length - 1].timestamp;
 
-        console.log(endTime)
-
         // Update all gps coordinates of type unknown within the specific time interval;
-        for(let i = 0; i < routeData.length; i++) {
-            let data = routeData[i];
+        for(let i = 0; i < this.state.routeData.length; i++) {
+            let data = this.state.routeData[i];
             if(data.activity === "unknown") {
                 if(data.location.timestamp <= endTime) {
                     data.activity = highestConfidence.activity
@@ -227,7 +200,7 @@ const TrackingScreen = ({navigation}) => {
         }
     }
 
-    const render = () => {
+    render = () => {
         return (
             <View style={{alignItems:"center", flex:1 }}>
                 <View style={{padding: 30,backgroundColor:"#ffffff", height: 100, width:Dimensions.get('window').width, alignItems:"center", justifyContent: 'space-between', flexDirection: 'row', shadowColor: "#000", shadowOffset: {width: 0, height: 3}, shadowOpacity: 0.27, shadowRadius: 4.65, elevation: 6}}>
@@ -235,71 +208,69 @@ const TrackingScreen = ({navigation}) => {
                         <View style={{textAlign: "center"}}>
                             <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Distance:</Text>
                             <View style={{paddingTop: 5}}>
-                                <DistanceManager routeTrajectory={routeData}></DistanceManager>
+                                <DistanceManager routeTrajectory={this.state.routeData}></DistanceManager>
                             </View>
                         </View>
                         <View>
                             <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Duration</Text>
                             <View style={{paddingTop: 5}}>
-                                <StopWatch ref={watch}></StopWatch>
+                                <StopWatch ref={this.watch}></StopWatch>
                             </View>
                         </View>
                         <View>
-                            <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Activity: {activity ? activity.activity : null}</Text>
+                            <Text style={{fontSize: 20, fontWeight: "300", textAlign: "center"}}>Activity: {this.state.activity ? this.state.activity.activity : null}</Text>
                             <View style={{width: "100%", alignItems: "center", paddingTop: 5}}>
-                                <FontAwesomeIcon size={25} color={getActivityColor()} icon={getActivityIcon()} />
+                                <FontAwesomeIcon size={25} color={this.getActivityColor()} icon={this.getActivityIcon()} />
                             </View>
                         </View>
                     </View>
                 </View>
                 <View>
                     <MapView
-                    region={region}
-                    ref={mapView}
+                    region={this.state.region}
+                    ref={this.mapView}
                     zoomEnabled={true}
-                    showsUserLocation={!useCustomMarker}
+                    showsUserLocation={!this.useCustomMarker}
                     showsCompass={true}
                     loadingEnabled={true}
                     style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height - 165, zIndex:1, padding: 50}}>
-                        { tracking ? <Polyline 
-                        coordinates={routeData.map(ele => {
+                        { this.state.routeData.length > 0 ? <Polyline 
+                        coordinates={this.state.routeData.map(ele => {
                             return {latitude: ele.location.coords.latitude, longitude: ele.location.coords.longitude}
                         })}
                         strokeColor="#000"
                         strokeWidth={2}
-                        strokeColors={routeData.map(ele => {
+                        strokeColors={this.state.routeData.map(ele => {
                             return ele.activity === "unknown" ? "#000" :
                             ele.activity === "Walking" 
                             ? "#8b4513" : "blue"
                         })}
                         /> : null}
-                        { useCustomMarker && lastKnownLocation ? <Marker coordinate={lastKnownLocation} image={require('../assets/blueDot.png')}/> : null}
+                        { this.useCustomMarker && this.state.lastKnownLocation ? <Marker coordinate={this.state.lastKnownLocation} image={require('../assets/blueDot.png')}/> : null}
                     </MapView>
-                    {tracking 
-                    ? <TouchableOpacity activeOpacity={0.1} onPress={e => onPress(e)} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
+                    {this.state.tracking 
+                    ? <TouchableOpacity activeOpacity={0.1} onPress={e => this.onPress(e)} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
                         <FontAwesomeIcon size={100} color={"#d10202"} icon={faStopCircle} />
                     </TouchableOpacity>
-                    :<TouchableOpacity activeOpacity={0.1} onPress={(event) => onPress(event)} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
+                    :<TouchableOpacity activeOpacity={0.1} onPress={(event) => this.onPress(event)} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
                         <FontAwesomeIcon size={100} color={"#18b500"} icon={faPlayCircle} />
                     </TouchableOpacity>}
-                    {immitateKayak ?
-                    <TouchableOpacity activeOpacity={0.1} onPress={() => setImmitateKayak(!immitateKayak)} style={{width: 50,justifyContent:"left", height:50, zIndex:2, bottom: 0, right: 0, position:"absolute"}}>
+                    {this.state.immitateKayak ?
+                    <TouchableOpacity activeOpacity={0.1} onPress={() => this.setState({immitateKayak: !this.state.immitateKayak})} style={{width: 50,justifyContent:"left", height:50, zIndex:2, bottom: 0, right: 0, position:"absolute"}}>
                         <FontAwesomeIcon size={30} color={"blue"} icon={faTint} />
                     </TouchableOpacity>
-                    :<TouchableOpacity activeOpacity={0.1} onPress={() => setImmitateKayak(!immitateKayak)} style={{width: 50,justifyContent:"left", height:50, zIndex:2, bottom: 0, right: 0, position:"absolute"}}>
+                    :<TouchableOpacity activeOpacity={0.1} onPress={() => this.setState({immitateKayak: !this.state.immitateKayak})} style={{width: 50,justifyContent:"left", height:50, zIndex:2, bottom: 0, right: 0, position:"absolute"}}>
                         <FontAwesomeIcon size={35} color={"#944a00"} icon={faTintSlash} />
                     </TouchableOpacity>}
                     
-                    <GPS ref={gps} subscribeUpdates={location => onLocationUpdate(location)} subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
-                    <Gyroscope ref={gyroscope} subscribeUpdates={angleVelocities => onGyroUpdate(angleVelocities)} />
-                    <Magnetometer ref={magnetometer} subscribeUpdates={magData => onMagUpdate(magData)} />
-                    <Accelerometer ref={accelerometer} immitateKayak={immitateKayak} subscribeUpdates={accelerations => onAccelerationUpdate(accelerations)}/>
+                    <GPS ref={this.gps} subscribeUpdates={location => this.onLocationUpdate(location)} subscribeInitLocation={(location) => this.handleGpsInit(location)}></GPS>
+                    <Gyroscope ref={this.gyroscope} subscribeUpdates={angleVelocities => this.onGyroUpdate(angleVelocities)} />
+                    <Magnetometer ref={this.magnetometer} subscribeUpdates={magData => this.onMagUpdate(magData)} />
+                    <Accelerometer ref={this.accelerometer} immitateKayak={this.state.immitateKayak} subscribeUpdates={accelerations => this.onAccelerationUpdate(accelerations)}/>
                 </View>
             </View>
         )
     }
-
-    return render()
 }
 
 export default TrackingScreen;
