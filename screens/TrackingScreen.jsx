@@ -41,7 +41,7 @@ const TrackingScreen = () => {
     const [accelerometerBatch, setAccelerometerBatch] = useState([])
 
     const getActivityIcon = () => {
-        switch (1) {
+        switch (activity?.activity) {
             case 1:
                 return faWalking;
             case 2:
@@ -52,7 +52,7 @@ const TrackingScreen = () => {
     }
 
     const getActivityColor = () => {
-        switch (1) {
+        switch (activity?.activity) {
             case 1:
                 return "#8B4513";
             case 2:
