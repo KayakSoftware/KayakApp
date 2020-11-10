@@ -75,21 +75,7 @@ const TrackingScreen = () => {
             console.log("Undefined location")
         }
     }
-
-    const onPress = async() => {
-        if(!tracking) {
-            let start = await TripService.createTrip();
-            setTripID(start._id);
-        } else {
-            console.log("tripId:", tripID)
-            let stop = await TripService.endTrip(tripID);
-            console.log("stoptrip",stop);
-
-        }
-        setTracking(!tracking)
-    }
-
-    const smapling = () => {
+    const sampling = () => {
         if(!tracking)
         {
             watch.current?.toggleStopwatch();
@@ -107,6 +93,28 @@ const TrackingScreen = () => {
             accelerometer.current?.stopSampling();
         }
     }
+
+    const onPress = async() => {
+        if(!tracking) {
+            let start = await TripService.createTrip();
+            if(start._id){
+            setTripID(start._id);
+            sampling();
+            }
+            else {
+                alert("Tracking didn't start")
+            }
+        } else {
+            let stop = await TripService.endTrip(tripID);
+            if(stop)
+                sampling();
+            else
+                alert("something went wrong! ")
+        }
+        setTracking(!tracking)
+    }
+
+    
 
     const onLocationUpdate = (location) => {
 
@@ -239,10 +247,10 @@ const TrackingScreen = () => {
                 </TouchableOpacity>}
                 {immitateKayak ?
                 <TouchableOpacity activeOpacity={0.1} onPress={() => setImmitateKayak(!immitateKayak)} style={{width: 50,justifyContent:"left", height:50, zIndex:2, bottom: 0, right: 0, position:"absolute"}}>
-                    <FontAwesomeIcon size={35} color={"#944a00"} icon={faTintSlash} />
+                    <FontAwesomeIcon size={30} color={"blue"} icon={faTint} />
                 </TouchableOpacity>
                 :<TouchableOpacity activeOpacity={0.1} onPress={() => setImmitateKayak(!immitateKayak)} style={{width: 50,justifyContent:"left", height:50, zIndex:2, bottom: 0, right: 0, position:"absolute"}}>
-                    <FontAwesomeIcon size={30} color={"blue"} icon={faTint} />
+                    <FontAwesomeIcon size={35} color={"#944a00"} icon={faTintSlash} />
                 </TouchableOpacity>}
                 
                 <GPS ref={gps} subscribeUpdates={location => onLocationUpdate(location)} subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
