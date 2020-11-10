@@ -2,16 +2,16 @@ import React, { useEffect, useState } from 'react'
 import Service from '../Services/tripService'
 import { View, Text, Dimensions, Pressable, TouchableOpacity} from 'react-native'
 import MapView, {Polyline, Marker} from 'react-native-maps';
-import { Button, FAB,PaperProvider } from 'react-native-paper';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faPlayCircle, faCoffee , faWater, faMountain, faQuestionCircle, faStopCircle, faStop} from '@fortawesome/free-solid-svg-icons';
+import { faPlayCircle, faTintSlash , faTint, faMountain, faQuestionCircle, faStopCircle, faStop, faShip, faWalking} from '@fortawesome/free-solid-svg-icons';
 import StopWatch from "../components/Stopwatch";
 import DistanceManager from '../components/DistanceManager';
-import { render } from 'react-dom';
+import TripService from "../Services/tripService"
 import GPS from '../components/Gps';
 import Gyroscope from '../components/GyroSensor'
 import Magnetometer from '../components/MagnetometerSensor';
 import Accelerometer from "../components/AccelerometerSensor";
+import { idText } from 'typescript';
 
 const TrackingScreen = () => {
 
@@ -26,6 +26,7 @@ const TrackingScreen = () => {
     const useCustomMarker = true
 
     // Transient state
+    const [tripID, setTripID] = useState();
     const [tracking, setTracking] = useState(false);
     const [region, setRegion] = useState()
     const [startTime, setStartTime] = useState()
@@ -42,9 +43,9 @@ const TrackingScreen = () => {
     const getActivityIcon = () => {
         switch (1) {
             case 1:
-                return faMountain;
+                return faWalking;
             case 2:
-                return faWater;
+                return faShip;
             default:
                 return faQuestionCircle;
         }
@@ -75,21 +76,36 @@ const TrackingScreen = () => {
         }
     }
 
-    const onPress = (event) => {
+    const onPress = async() => {
         if(!tracking) {
+            let start = await TripService.createTrip();
+            setTripID(start._id);
+        } else {
+            console.log("tripId:", tripID)
+            let stop = await TripService.endTrip(tripID);
+            console.log("stoptrip",stop);
+
+        }
+        setTracking(!tracking)
+    }
+
+    const smapling = () => {
+        if(!tracking)
+        {
             watch.current?.toggleStopwatch();
             gps.current?.startSampling();
             gyroscope.current?.startSampling();
             magnetometer.current?.startSampling();
             accelerometer.current?.startSampling();
-        } else {
+        }
+        else if(tracking)
+        {
             watch.current?.toggleStopwatch();
             gps.current?.stopSampling();
             gyroscope.current?.stopSampling();
             magnetometer.current?.stopSampling();
-            accelerometer.current?.stopSampling()
+            accelerometer.current?.stopSampling();
         }
-        setTracking(!tracking)
     }
 
     const onLocationUpdate = (location) => {
@@ -221,9 +237,14 @@ const TrackingScreen = () => {
                 :<TouchableOpacity activeOpacity={0.1} onPress={(event) => onPress(event)} style={{width:100,justifyContent:"center", alignSelf:"center", height:100, zIndex:2, bottom: 40, position:"absolute", borderRadius:"100%"}}>
                     <FontAwesomeIcon size={100} color={"#18b500"} icon={faPlayCircle} />
                 </TouchableOpacity>}
+                {immitateKayak ?
                 <TouchableOpacity activeOpacity={0.1} onPress={() => setImmitateKayak(!immitateKayak)} style={{width: 50,justifyContent:"left", height:50, zIndex:2, bottom: 0, right: 0, position:"absolute"}}>
-                    <FontAwesomeIcon size={50} color={"#18b500"} icon={faStopCircle} />
+                    <FontAwesomeIcon size={35} color={"#944a00"} icon={faTintSlash} />
                 </TouchableOpacity>
+                :<TouchableOpacity activeOpacity={0.1} onPress={() => setImmitateKayak(!immitateKayak)} style={{width: 50,justifyContent:"left", height:50, zIndex:2, bottom: 0, right: 0, position:"absolute"}}>
+                    <FontAwesomeIcon size={30} color={"blue"} icon={faTint} />
+                </TouchableOpacity>}
+                
                 <GPS ref={gps} subscribeUpdates={location => onLocationUpdate(location)} subscribeInitLocation={(location) => handleGpsInit(location)}></GPS>
                 <Gyroscope ref={gyroscope} subscribeUpdates={angleVelocities => onGyroUpdate(angleVelocities)} />
                 <Magnetometer ref={magnetometer} subscribeUpdates={magData => onMagUpdate(magData)} />
