@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Service from '../Services/tripService'
-import { View, Text, Dimensions, Pressable, TouchableOpacity} from 'react-native'
+import { View, Text, Dimensions, Alert, TouchableOpacity} from 'react-native'
 import MapView, {Polyline, Marker} from 'react-native-maps';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faPlayCircle, faTintSlash , faTint, faMountain, faQuestionCircle, faStopCircle, faStop, faShip, faWalking} from '@fortawesome/free-solid-svg-icons';
@@ -13,7 +13,7 @@ import Magnetometer from '../components/MagnetometerSensor';
 import Accelerometer from "../components/AccelerometerSensor";
 import { idText } from 'typescript';
 
-const TrackingScreen = () => {
+const TrackingScreen = ({navigation}) => {
 
     const watch = React.createRef();
     const mapView = React.createRef();
@@ -39,6 +39,32 @@ const TrackingScreen = () => {
     const [immitateKayak, setImmitateKayak] = useState(false);
 
     const [accelerometerBatch, setAccelerometerBatch] = useState([])
+
+    React.useEffect(
+        () =>
+          navigation.addListener('beforeRemove', (e) => {
+            const action = e.data.action;
+            if (!tracking) {
+              return;
+            }
+    
+            e.preventDefault();
+    
+            Alert.alert(
+              'Trip is running !',
+              'You have to stop the tracking before leaving this screen',
+              [
+                { text: "Back", style: 'cancel', onPress: () => {} },
+                {
+                    text: 'End trip',
+                    style: 'destructive',
+                    onPress: () => {onPress() ,navigation.dispatch(action)},
+                  },
+              ]
+            );
+          }),
+        [tracking, navigation]
+      );
 
     const getActivityIcon = () => {
         switch (activity?.activity) {
@@ -77,17 +103,13 @@ const TrackingScreen = () => {
     }
     
     const onPress = async (event) => {
-
         if(!tracking) {
+            console.log("start")
             let start = await TripService.createTrip();
             if(start._id){
-                console.log(watch.current)
-                console.log(watch.current)
-                watch.current?.toggleStopwatch();
-                gps.current?.startSampling();
-                gyroscope.current?.startSampling();
-                magnetometer.current?.startSampling();
-                accelerometer.current?.startSampling();
+                sampling();
+                resetTripData();
+                console.log(routeData.length + ":" +accelerometerBatch.length)
                 setTripID(start._id);
                 setTracking(!tracking)
             }
@@ -95,13 +117,11 @@ const TrackingScreen = () => {
                 alert("Tracking didn't start")
             }
         } else {
+            
             let stop = await TripService.endTrip(tripID);
+            console.log(stop)
             if(stop) {
-                watch.current?.toggleStopwatch();
-                gps.current?.stopSampling();
-                gyroscope.current?.stopSampling();
-                magnetometer.current?.stopSampling();
-                accelerometer.current?.stopSampling();
+                sampling();
                 setTracking(!tracking)
             } else {
                 alert("something went wrong! ")
@@ -109,8 +129,14 @@ const TrackingScreen = () => {
         }
     }
 
-    const sampling = (toggle) => {
-        if(toggle)
+    const resetTripData = () => {
+        alert(routeData.length + ":" + accelerometerBatch.length)
+        setRouteData([]);
+        setAccelerometerBatch([]);
+    }
+
+    const sampling = () => {
+        if(!tracking)
         {
             watch.current?.toggleStopwatch();
             gps.current?.startSampling();
