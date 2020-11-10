@@ -24,6 +24,7 @@ const TrackingScreen = ({navigation}) => {
     
     // Simple state
     const useCustomMarker = true
+    const initstate = [];
 
     // Transient state
     const [tripID, setTripID] = useState();
@@ -31,14 +32,14 @@ const TrackingScreen = ({navigation}) => {
     const [region, setRegion] = useState()
     const [startTime, setStartTime] = useState()
     const [endTime, setEndTime] = useState()
-    const [activity, setActivity] = useState(1)
+    const [activity, setActivity] = useState()
     const [findInitLocation, setFindInitLocation] = useState();
-    const [routeData, setRouteData] = useState([])
+    const [routeData, setRouteData] = useState(initstate)
     const [requestUpdate, setRequestUpdate] = useState(0)
     const [lastKnownLocation, setLastKnownLocation] = useState(undefined)
     const [immitateKayak, setImmitateKayak] = useState(false);
 
-    const [accelerometerBatch, setAccelerometerBatch] = useState([])
+    const [accelerometerBatch, setAccelerometerBatch] = useState(initstate)
 
     React.useEffect(
         () =>
@@ -68,9 +69,9 @@ const TrackingScreen = ({navigation}) => {
 
     const getActivityIcon = () => {
         switch (activity?.activity) {
-            case 1:
+            case "Walking":
                 return faWalking;
-            case 2:
+            case "Sailing":
                 return faShip;
             default:
                 return faQuestionCircle;
@@ -108,21 +109,20 @@ const TrackingScreen = ({navigation}) => {
             let start = await TripService.createTrip();
             if(start._id){
                 sampling();
-                resetTripData();
-                console.log(routeData.length + ":" +accelerometerBatch.length)
                 setTripID(start._id);
+                resetTripData();
                 setTracking(!tracking)
             }
             else {
                 alert("Tracking didn't start")
             }
         } else {
-            
             let stop = await TripService.endTrip(tripID);
-            console.log(stop)
             if(stop) {
                 sampling();
-                setTracking(!tracking)
+                console.log(routeData.length + ":In end method: " +accelerometerBatch.length)
+                setTracking(!tracking);
+                console.log("stop")
             } else {
                 alert("something went wrong! ")
             }
@@ -130,9 +130,9 @@ const TrackingScreen = ({navigation}) => {
     }
 
     const resetTripData = () => {
-        alert(routeData.length + ":" + accelerometerBatch.length)
-        setRouteData([]);
-        setAccelerometerBatch([]);
+        setRouteData(initstate);
+        setAccelerometerBatch(initstate);
+        console.log(routeData + " :In start method: " + accelerometerBatch)
     }
 
     const sampling = () => {
@@ -161,7 +161,6 @@ const TrackingScreen = ({navigation}) => {
             location: location
         }
 
-        console.log(o)
 
         routeData.push(o)
         setLastKnownLocation({latitude: location.coords.latitude, longitude: location.coords.longitude});
