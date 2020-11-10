@@ -32,7 +32,7 @@ const TrackingScreen = () => {
     const [endTime, setEndTime] = useState()
     const [activity, setActivity] = useState(1)
     const [findInitLocation, setFindInitLocation] = useState();
-    const [routeData, setRouteData] = useState([]) 
+    const [routeData, setRouteData] = useState([])
     const [requestUpdate, setRequestUpdate] = useState(0)
     const [lastKnownLocation, setLastKnownLocation] = useState(undefined)
     const [immitateKayak, setImmitateKayak] = useState(false);
@@ -93,12 +93,15 @@ const TrackingScreen = () => {
     }
 
     const onLocationUpdate = (location) => {
-        routeData.push(location)
-        // If the screen should follow the user
-        /*mapView.current?.animateToRegion({
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-        })*/
+
+        const o = {
+            activity: "unknown",
+            location: location
+        }
+
+        console.log(o)
+
+        routeData.push(o)
         setLastKnownLocation({latitude: location.coords.latitude, longitude: location.coords.longitude});
         setRouteData([...routeData])
     }
@@ -112,8 +115,13 @@ const TrackingScreen = () => {
     }
 
     const onAccelerationUpdate = (accelerations) => {
-        accelerometerBatch.push(accelerations);
-        if(accelerometerBatch.length === 200) {
+
+        //console.log(accelerations);
+        accelerometerBatch.push({
+            timestamp: new Date().getTime(),
+            accelerations: accelerations
+        });
+        if(accelerometerBatch.length === 200) { 
             const requestData = accelerometerBatch;
             setAccelerometerBatch([]);
             predictActivity(requestData);
@@ -121,8 +129,14 @@ const TrackingScreen = () => {
     }
 
     const predictActivity = async (accelerometerData) => {
+        
+        console.log(routeData)
 
-        var result = await Service.updateTripActivity("nothing", {accelerometerData: accelerometerData});
+        var gps = routeData.filter(e => e.activity === "unknown")
+        var result = await Service.updateTripActivity("nothing", {
+            accelerometerData: accelerometerData,
+            gpsData: gps
+        });
         
         var highestConfidence = undefined;
 
@@ -137,6 +151,20 @@ const TrackingScreen = () => {
             }
         }
         setActivity(highestConfidence)
+        console.log(highestConfidence.activity)
+        let endTime = accelerometerData[accelerometerData.length - 1].timestamp;
+
+        console.log(endTime)
+
+        // Update all gps coordinates of type unknown within the specific time interval;
+        for(let i = 0; i < routeData.length; i++) {
+            let data = routeData[i];
+            if(data.activity === "unknown") {
+                if(data.location.timestamp <= endTime) {
+                    data.activity = highestConfidence.activity
+                }
+            }
+        }
     }
 
     return (
@@ -174,10 +202,15 @@ const TrackingScreen = () => {
                 style={{width: Dimensions.get('window').width, height: Dimensions.get('window').height - 165, zIndex:1, padding: 50}}>
                     { tracking ? <Polyline 
                     coordinates={routeData.map(ele => {
-                        return {latitude: ele.coords.latitude, longitude: ele.coords.longitude}
+                        return {latitude: ele.location.coords.latitude, longitude: ele.location.coords.longitude}
                     })}
                     strokeColor="#000"
                     strokeWidth={2}
+                    strokeColors={routeData.map(ele => {
+                        return ele.activity === "unknown" ? "#000" :
+                        ele.activity === "Walking" 
+                        ? "#8b4513" : "blue"
+                    })}
                     /> : null}
                     { useCustomMarker && lastKnownLocation ? <Marker coordinate={lastKnownLocation} image={require('../assets/blueDot.png')}/> : null}
                 </MapView>

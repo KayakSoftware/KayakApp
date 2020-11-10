@@ -10,10 +10,10 @@ const DistanceManager = (props) => {
         var previousPoint = undefined;
         for(let i = 0; i < props.routeTrajectory.length; i++) {
             if(!previousPoint) {
-                previousPoint = [props.routeTrajectory[i].coords.longitude, props.routeTrajectory[i].coords.latitude]
+                previousPoint = [props.routeTrajectory[i].location.coords.longitude, props.routeTrajectory[i].location.coords.latitude]
                 continue;
             }
-            var currentPoint = [props.routeTrajectory[i].coords.longitude, props.routeTrajectory[i].coords.latitude]
+            var currentPoint = [props.routeTrajectory[i].location.coords.longitude, props.routeTrajectory[i].location.coords.latitude]
             totalLength += turf(previousPoint, currentPoint, "kilometers")
         }
         return Math.floor(totalLength * 100) / 100;
