@@ -30,10 +30,18 @@ const TripOverviewScreen = (props) => {
 
     const render = () => {
         
-        if(data.trip.tripStatus === "Analyzing") {
-            return <View>
+        if(!data) {
+            return <View style={{width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}}>
+            <ActivityIndicator></ActivityIndicator>
+        </View>
+        }
+
+        if(!loading && data) {
+            if(data.trip.tripStatus === "Analyzing") {
+                return <View>
                 <Text> Proccesing your trip! Come back later...</Text>
             </View>
+            }
         }
         
         
