@@ -12,6 +12,7 @@ const TripListScreen = ({navigation}) => {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState([]);
 
+
     useEffect(() => {
         downloadTrips()
     }, [])
