@@ -35,7 +35,9 @@ class TrackingScreen extends React.Component {
             findInitLocation: undefined,
             routeData: [],
             lastKnownLocation: undefined,
-            immitateKayak: false
+            immitateKayak: false,
+            batteryLevel: undefined,
+            batchSize: 200
         }
     }
 
@@ -192,6 +194,19 @@ class TrackingScreen extends React.Component {
         }
     }
 
+    onBatteryUpdate = (level) => {
+        this.setState({batteryLevel: level})
+
+        // Determine batch size based on batteryLevel and thus the battery spent here. Could also be the velocity.
+        if(level >= 0.6) {
+            this.setState({batchSize: 200})
+        }
+        if(level >= 0.2) {
+            this.setState({batchSize: 400})
+        }
+        this.setState({batchSize: 800})
+    }
+
     render = () => {
         return (
             <View style={{alignItems:"center", flex:1 }}>
@@ -265,6 +280,8 @@ class TrackingScreen extends React.Component {
                     
                     enableAccelerometer
                     subscribeAccelerationUpdates={(accelerations => this.onAccelerationUpdate(accelerations))}
+
+                    subscribeBatteryUpdates={level => this.onBatteryUpdate(level.batteryLevel)}
 
                     //enableCompas
                     //subscribeCompasUpdates={direction => this.onDirectionUpdate(direction)}

@@ -37,6 +37,11 @@ class GPS extends React.Component {
         })();
     }
 
+    sampleHeading = async () => {
+        var heading = await Location.getHeadingAsync();
+        console.log(heading);
+    }
+
     /**
      * 
      * Fetch the current position with different options such as using cache and accuracy.

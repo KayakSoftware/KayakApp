@@ -22,6 +22,12 @@ class SensorHandler extends React.Component {
         this.state = {
             lastPosition: null,
             isStill: false,
+            batteryLevel: null,
+            sensorParameters: {
+                usePositionCache: false,
+                cacheValidationRule: {maxAge: 0, requiredAccuracy: 1},
+                locationAccuracy: LocationAccuracy.High
+            }
         }
     }
 
@@ -29,6 +35,7 @@ class SensorHandler extends React.Component {
     startEnabledSensors = () => {
         this.log("Starting Enabled Sensors")
         this.requestPosition();
+        this.gps.current?.sampleHeading();
 
         // simple subscribe sensors
         this.gyroscope.current?.startSampling();
@@ -42,10 +49,12 @@ class SensorHandler extends React.Component {
        
         // Request initial GPS update
         try {
-            
             this.log("Requesting Position update")
-            const position = await this.gps.current?.getPositionAsync(false, {maxAge: 0, requiredAccuracy: 1}, LocationAccuracy.High);
-            console.log(position);
+            const position = await this.gps.current?.getPositionAsync(
+                this.state.sensorParameters.usePositionCache, 
+                this.state.sensorParameters.cacheValidationRule, 
+                this.state.sensorParameters.locationAccuracy);
+                console.log(position)
             if(this.props.subscribeGpsUpdates)this.props.subscribeGpsUpdates(position);
             this.setState({lastPosition: position})
             
@@ -73,8 +82,6 @@ class SensorHandler extends React.Component {
             return;
         }
 
-
-
         // Static duty cycling
         this.evaluateSensorParameters();
         this.log("Scheduling new position update in 5 seconds");
@@ -84,8 +91,41 @@ class SensorHandler extends React.Component {
     }
 
     evaluateSensorParameters = () => {
-        console.log("Battery: ", this.battery.current.state);
+        
+        if(this.state.batteryLevel === null) {
+            return;
+        }
 
+        //GPS accuracy management
+        this.setState({
+            usePositionCache: false,
+            cacheValidationRule: {maxAge: 0, requiredAccuracy: 1},
+            locationAccuracy: this.getLocationAccuracy(this.state.batteryLevel)
+        })
+
+        // Lower Accelerometer sampling frequency
+        this.determineRelevantAccelerometerSampleRate(this.state.batteryLevel);
+
+    }
+
+    determineRelevantAccelerometerSampleRate = (level) => {
+        if(level.batteryLevel >= 0.6) {
+            this.accelerometer.current?.setSampleRatePrSecond(60);
+        }
+        if(level.batteryLevel >= 0.2) {
+            this.accelerometer.current?.setSampleRatePrSecond(30);
+        }
+        this.accelerometer.current?.setSampleRatePrSecond(15);
+    }
+
+    getLocationAccuracy = (level) => {
+        if(level.batteryLevel >= 0.6) {
+            return LocationAccuracy.Highest;
+        }
+        if(level.batteryLevel >= 0.2) {
+            return LocationAccuracy.High
+        }
+        return LocationAccuracy.Balanced;
     }
 
     stopEnabledSensors = () => {
@@ -101,9 +141,8 @@ class SensorHandler extends React.Component {
         if(this.props.subscribeBatteryUpdates)
         {
             this.props.subscribeBatteryUpdates(level);
-            console.log("batter:", level)
+            this.setState({batteryLevel: level})
         }
-        
     }
 
     renderBattery = () => {

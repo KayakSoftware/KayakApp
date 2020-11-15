@@ -13,8 +13,10 @@ class BatteryState extends React.Component {
     subscribe = async () => {
         const BatteryLevel = await Battery.getPowerStateAsync();
         this.setState({ BatteryLevel: BatteryLevel });
-        this._subscription = Battery.addBatteryLevelListener(({BatteryLevel}) => {
-            this.setState({BatteryLevel: BatteryLevel});
+        if(this.props.subscribeBatteryUpdates)this.props.subscribeBatteryUpdates(BatteryLevel)
+        this._subscription = Battery.addBatteryLevelListener(({batteryLevel}) => {
+            this.setState({BatteryLevel: batteryLevel});
+            if(this.props.subscribeBatteryUpdates)this.props.subscribeBatteryUpdates(batteryLevel)
         })
     }
 
