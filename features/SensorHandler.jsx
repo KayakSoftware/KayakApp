@@ -3,6 +3,7 @@ import GPS from "../components/Gps";
 import Gyroscope from "../components/GyroSensor";
 import Magnetometer from "../components/MagnetometerSensor";
 import Accelerometer from "../components/AccelerometerSensor";
+import Battery from "../components/Battery"; 
 import { View } from "react-native";
 import { LocationAccuracy } from "expo-location";
 
@@ -12,6 +13,7 @@ class SensorHandler extends React.Component {
     gyroscope = React.createRef();
     accelerometer = React.createRef();
     magnetometer = React.createRef();
+    battery = React.createRef();
 
     debug = true;
 
@@ -32,12 +34,15 @@ class SensorHandler extends React.Component {
         this.gyroscope.current?.startSampling();
         this.accelerometer.current?.startSampling();
         this.magnetometer.current?.startSampling();
+        this.battery.current?.subscribe();
     }
 
     requestPosition = async () => {
 
+       
         // Request initial GPS update
         try {
+            
             this.log("Requesting Position update")
             const position = await this.gps.current?.getPositionAsync(false, {maxAge: 0, requiredAccuracy: 1}, LocationAccuracy.High);
             if(this.props.subscribeGpsUpdates)this.props.subscribeGpsUpdates(position);
@@ -68,10 +73,16 @@ class SensorHandler extends React.Component {
         }
 
         // Static duty cycling
+        this.evaluateSensorParameters();
         this.log("Scheduling new position update in 5 seconds");
         setTimeout(() => {
             this.requestPosition();
         }, 5000)
+    }
+
+    evaluateSensorParameters = () => {
+        console.log("Battery: ", this.battery.current.state);
+
     }
 
     stopEnabledSensors = () => {
@@ -79,8 +90,22 @@ class SensorHandler extends React.Component {
         this.gyroscope.current?.stopSampling();
         this.accelerometer.current?.stopSampling();
         this.magnetometer.current?.stopSampling();
+        this.battery.current?.unsubscribe();
     }
 
+    // ******** Battery level ********* //
+    onBatteryLevelUpdate = (level) => {
+        if(this.props.subscribeBatteryUpdates)
+        {
+            this.props.subscribeBatteryUpdates(level);
+            console.log("batter:", level)
+        }
+        
+    }
+
+    renderBattery = () => {
+        return <Battery ref={this.battery} subscribeBatteryUpdates={level => this.onBatteryLevelUpdate(level)} />
+    }
 
     // ***** Magnetometer START *****
     onCompasUpdate = (direction) => {
@@ -190,6 +215,7 @@ class SensorHandler extends React.Component {
             {this.renderGyroscope()}
             {this.renderAccelerometer()}
             {this.renderMagnetometer()}
+            {this.renderBattery()}
         </View>
     }
 

@@ -17,6 +17,7 @@
     "@turf/distance": "^6.0.1",
     "axios": "^0.20.0",
     "expo": "~39.0.2",
+    "expo-battery": "~3.0.0",
     "expo-file-system": "~9.2.0",
     "expo-location": "~9.0.0",
     "expo-sensors": "~9.1.0",

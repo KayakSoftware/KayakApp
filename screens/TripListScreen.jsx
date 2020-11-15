@@ -60,7 +60,7 @@ const TripListScreen = ({navigation}) => {
                     onPress={() => navigation.navigate("TripOverview", {tripId: item._id})}
                     titleStyle={{fontWeight:"900"}}
                     title={`${item.startTime}:${" Trip status: "+ item.tripStatus}`}
-                    description={`${"Distance: "+item.distanceTotal}:${"  Duration: "+item.duration+"sec"}:${" Average speed: "+item.averageSpeed}`}
+                    description={`${"Distance: "+item.distanceTotal}:${"  Duration: "+item.duration+"s"}:${" Average speed: "+item.averageSpeed+" km/t"}`}
                     >
                 </List.Item>
                 : 
@@ -69,7 +69,8 @@ const TripListScreen = ({navigation}) => {
                     onPress={() => navigation.navigate("TripOverview", {tripId: item._id})}
                     titleStyle={{fontWeight:"900"}}
                     title={`${item.startTime}`}
-                    description={`${"Distance: "+item.distanceTotal}:${"  Duration: "+item.duration+"sec"}:${" Average speed: "+item.averageSpeed}`}
+                    //descriptionStyle={{fontSize:13}}
+                    description={`${"Distance: "+item.distanceTotal}:${"  Duration: "+item.duration+"s"}:${" Average speed: "+item.averageSpeed+" km/t"}`}
                     >
                 </List.Item>}
             </View>
