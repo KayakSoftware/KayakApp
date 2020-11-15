@@ -32,12 +32,18 @@ const styles = StyleSheet.create({
 
 class Sensor extends React.Component {
 
+    numberOfObservations = 0;
+
     constructor(props) {
       super(props)
       this.state = {
         data: {},
         subscription: undefined,
-        kayakLine: 0
+        kayakLine: 0,
+        slidingWindow: [],
+        currentSampleRate: 60,
+        isStill: false,
+        wakeUpCallback: null
       }
     }
 
@@ -56,6 +62,7 @@ class Sensor extends React.Component {
 
     setSampleRatePrSecond = (samplesPrSecond) => {
       let sampleRate = 1000 / samplesPrSecond
+      this.setState({currentSampleRate: samplesPrSecond})
       Accelerometer.setUpdateInterval(sampleRate)
     }
 
@@ -85,13 +92,80 @@ class Sensor extends React.Component {
 
       const subscription = Accelerometer.addListener(accelerometerData => {
           if(this.props.immitateKayak) {
-            if(this.props.subscribeUpdates)this.props.subscribeUpdates(this.readKayakData()); 
+            this.emitData(this.readKayakData()); 
           } else {
-            if(this.props.subscribeUpdates)this.props.subscribeUpdates(this.transformAccelerometerData(accelerometerData)); 
+            this.emitData(this.transformAccelerometerData(accelerometerData))
           } 
       });
       this.setState({subscription: subscription})
     };
+
+    monitorWakeUp = (callback) => {
+      this.setState({wakeUpCallback: callback});
+    }
+
+    monitorStill = (accelerations) => {
+      // Caculate error boundaries
+      let xAverage = 0;
+      let yAverage = 0;
+      let zAverage = 0;
+
+      for(let i = 0; i < this.state.slidingWindow.length; i++) {
+        xAverage += this.state.slidingWindow[i].x;
+        yAverage += this.state.slidingWindow[i].y;
+        zAverage += this.state.slidingWindow[i].z;
+      }
+
+      xAverage = xAverage / this.state.slidingWindow.length;
+      yAverage = yAverage / this.state.slidingWindow.length;
+      zAverage = zAverage / this.state.slidingWindow.length;
+
+      let xVarians = accelerations.x - xAverage;
+      let yVarians = accelerations.y - yAverage;
+      let zVarians = accelerations.z - zAverage;
+
+      if(Math.abs(xVarians) < 0.1 && Math.abs(yVarians) < 0.1 && Math.abs(zVarians) < 0.1) {
+        if(!this.state.isStill) {
+          this.setState({isStill: true})
+        }
+        if(this.props.subscribeIsStill)this.props.subscribeIsStill(true);
+      } else {
+        if(this.state.isStill) {
+          this.setState({isStill: false})
+          if(this.state.wakeUpCallback !== null) {
+            setTimeout(() =>{
+              this.state.wakeUpCallback("monitorStill");
+            }, 100)
+          }
+        }
+        if(this.props.subscribeIsStill)this.props.subscribeIsStill(false);
+      }
+    }
+
+    emitData = (accelerations) => {
+
+      const slidingWindowSize = this.state.currentSampleRate * 5;
+      this.numberOfObservations++;
+
+      // If we are at the maximum shift and push to the array
+      if(this.state.slidingWindow.length === slidingWindowSize) {
+        if(this.numberOfObservations % (Math.floor(this.state.currentSampleRate / 2) + 1) === 0) {
+          this.monitorStill(accelerations);
+        }
+
+        this.state.slidingWindow.shift()
+      }
+      this.state.slidingWindow.push(accelerations);
+
+      // If the sampleRate changed, update maximum slidingWindowSize
+      if(slidingWindowSize < this.state.slidingWindow.length) {
+        const cutOff = this.state.slidingWindow.length - slidingWindowSize + 1;
+        const newWindow = this.state.slidingWindow.slice(0, cutOff);
+        this.setState({slidingWindow: newWindow})
+      }
+      // Emit updates!
+      if(this.props.subscribeUpdates)this.props.subscribeUpdates(accelerations);
+    }
 
     transformAccelerometerData = (data) => {
       return {

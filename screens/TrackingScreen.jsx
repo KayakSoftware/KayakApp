@@ -263,8 +263,8 @@ class TrackingScreen extends React.Component {
                     subscribeGpsUpdates={(location) => this.onLocationUpdate(location)}
                     subscribeInitLocation={(location) => this.handleGpsInit(location)}
                     
-                    //enableAccelerometer
-                    //subscribeAccelerationUpdates={(accelerations => this.onAccelerationUpdate(accelerations))}
+                    enableAccelerometer
+                    subscribeAccelerationUpdates={(accelerations => this.onAccelerationUpdate(accelerations))}
 
                     //enableCompas
                     //subscribeCompasUpdates={direction => this.onDirectionUpdate(direction)}

@@ -18,12 +18,14 @@ class SensorHandler extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            lastPosition: null
+            lastPosition: null,
+            isStill: false,
         }
     }
 
     // COMMON Section
     startEnabledSensors = () => {
+        this.log("Starting Enabled Sensors")
         this.requestPosition();
 
         // simple subscribe sensors
@@ -42,7 +44,7 @@ class SensorHandler extends React.Component {
             this.setState({lastPosition: position})
             
             // Run update strategy flow
-            this.chooseUpdateStrategy();
+            this.chooseUpdateStrategy("requestPosition");
             
         } catch (err) {
             console.error(err)
@@ -54,18 +56,23 @@ class SensorHandler extends React.Component {
         }
     }
 
-    chooseUpdateStrategy = () => {
+    chooseUpdateStrategy = (origin) => {
 
-        // Based on different elements select an update strategy...
-        
+        this.log("Choosing update strategy from: " + origin)
+
+        // If phone is still dont do updates
+        if(this.state.isStill) {
+            this.log("Phone is still, monitorWakeUp before continuing")
+            this.accelerometer.current?.monitorWakeUp(() => this.chooseUpdateStrategy());
+            return;
+        }
+
         // Static duty cycling
+        this.log("Scheduling new position update in 5 seconds");
         setTimeout(() => {
             this.requestPosition();
         }, 5000)
     }
-
-
-
 
     stopEnabledSensors = () => {
         this.gps.current?.stopSampling();
@@ -128,14 +135,16 @@ class SensorHandler extends React.Component {
 
     // ***** Accelerometer START *****
     onAccelerationUpdate = (accelerations) => {
-        if(this.props.subscribeAccelerationUpdate) {
-            this.props.subscribeAccelerationUpdates(accelerations);
+        if(!this.state.isStill) {
+            if(this.props.subscribeAccelerationUpdate) {
+                this.props.subscribeAccelerationUpdates(accelerations);
+            }
         }
     }
 
     renderAccelerometer = () => {
         if(this.props.enableAccelerometer) {
-            return <Accelerometer ref={this.accelerometer} immitateKayak={this.props.immitateKayak} subscribeUpdates={accelerations => this.onAccelerationUpdate(accelerations)}/>
+            return <Accelerometer ref={this.accelerometer} immitateKayak={this.props.immitateKayak} subscribeIsStill={movement => this.setState({isStill: movement})} subscribeUpdates={accelerations => this.onAccelerationUpdate(accelerations)}/>
         }
     }
 
