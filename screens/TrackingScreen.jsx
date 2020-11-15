@@ -12,15 +12,13 @@ import Gyroscope from '../components/GyroSensor'
 import Magnetometer from '../components/MagnetometerSensor';
 import Accelerometer from "../components/AccelerometerSensor";
 import { idText } from 'typescript';
+import SensorHandler from '../features/SensorHandler';
 
 class TrackingScreen extends React.Component {
 
     watch = React.createRef();
     mapView = React.createRef();
-    gps = React.createRef();
-    accelerometer = React.createRef();
-    gyroscope = React.createRef();
-    magnetometer = React.createRef();
+    sensorHandler = React.createRef();
     
     // Simple state
     useCustomMarker = true
@@ -102,7 +100,7 @@ class TrackingScreen extends React.Component {
     }
     
     onPress = async (event) => {
-
+        console.log("pressed")
         if(!this.state.tracking) {
             let start = await TripService.createTrip();
             if(start._id){
@@ -110,10 +108,7 @@ class TrackingScreen extends React.Component {
                 this.setState({tripID: start._id, routeData: [], tracking: !this.state.tracking, activity: undefined})
                 this.watch.current?.resetStopwatch();
                 this.watch.current?.toggleStopwatch();
-                this.gps.current?.startSampling();
-                this.gyroscope.current?.startSampling();
-                this.magnetometer.current?.startSampling();
-                this.accelerometer.current?.startSampling();
+                this.sensorHandler.current?.startEnabledSensors();
             }
             else {
                 alert("Tracking didn't start")
@@ -122,11 +117,8 @@ class TrackingScreen extends React.Component {
             let stop = await TripService.endTrip(this.state.tripID);
             if(stop) {
                 this.watch.current?.toggleStopwatch();
-                this.gps.current?.stopSampling();
-                this.gyroscope.current?.stopSampling();
-                this.magnetometer.current?.stopSampling();
-                this.accelerometer.current?.stopSampling();
                 this.setState({tracking: !this.state.tracking})
+                this.sensorHandler.current?.stopEnabledSensors();
             } else {
                 alert("something went wrong! ")
             }
@@ -148,8 +140,8 @@ class TrackingScreen extends React.Component {
         //console.log(angelVelocities)
     }
 
-    onMagUpdate = (magData) => {
-        //console.log(magData)
+    onDirectionUpdate = (direction) => {
+        //console.log(direction)
     }
 
     onAccelerationUpdate = (accelerations) => {
@@ -263,10 +255,21 @@ class TrackingScreen extends React.Component {
                         <FontAwesomeIcon size={35} color={"#944a00"} icon={faTintSlash} />
                     </TouchableOpacity>}
                     
-                    <GPS ref={this.gps} subscribeUpdates={location => this.onLocationUpdate(location)} subscribeInitLocation={(location) => this.handleGpsInit(location)}></GPS>
-                    <Gyroscope ref={this.gyroscope} subscribeUpdates={angleVelocities => this.onGyroUpdate(angleVelocities)} />
-                    <Magnetometer ref={this.magnetometer} subscribeUpdates={magData => this.onMagUpdate(magData)} />
-                    <Accelerometer ref={this.accelerometer} immitateKayak={this.state.immitateKayak} subscribeUpdates={accelerations => this.onAccelerationUpdate(accelerations)}/>
+                    <SensorHandler
+                    ref={this.sensorHandler}
+                    //immitateKayak={this.state.immitateKayak}
+
+                    enableGPS 
+                    subscribeGpsUpdates={(location) => this.onLocationUpdate(location)}
+                    subscribeInitLocation={(location) => this.handleGpsInit(location)}
+                    
+                    //enableAccelerometer
+                    //subscribeAccelerationUpdates={(accelerations => this.onAccelerationUpdate(accelerations))}
+
+                    //enableCompas
+                    //subscribeCompasUpdates={direction => this.onDirectionUpdate(direction)}
+
+                    ></SensorHandler>
                 </View>
             </View>
         )

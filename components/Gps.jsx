@@ -4,6 +4,8 @@ import * as Location from 'expo-location';
 import { LocationAccuracy } from 'expo-location';
 import { idText } from 'typescript';
 
+export 
+
 class GPS extends React.Component {
 
     constructor(props) {
@@ -33,6 +35,33 @@ class GPS extends React.Component {
                 if(this.props.subscribeInitLocation)this.props.subscribeInitLocation(undefined);
             }
         })();
+    }
+
+    /**
+     * 
+     * Fetch the current position with different options such as using cache and accuracy.
+     * 
+     * @param {boolean} useCache 
+     * @param {{maxAge: number, requiredAccuracy: number}} cacheValidationOptions 
+     * @param {LocationAccuracy} freshAccuracy 
+     */
+    getPositionAsync = async (useCache, cacheValidationOptions, freshAccuracy) => {
+
+        if(useCache) {
+            const position = await Location.getLastKnownPositionAsync(cacheValidationOptions)
+            if(position === null) {
+                console.log("Could not find cached position within defined error bounds - Fetching current location")
+                return await this.getCurrentPositionAsync(false, cacheValidationOptions, freshAccuracy)
+            } else {
+                return position;
+            }
+
+        } else {
+            const position = await Location.getCurrentPositionAsync({
+                accuracy: freshAccuracy
+            })
+            return position;
+        }
     }
 
     startSampling() {

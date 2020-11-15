@@ -26,7 +26,7 @@ export default class MagnetometerSensor extends Component {
     _subscribeUpdates() {
         var magHandler = Magnetometer.addListener(magneData => {
             this.setState({data: magneData})
-            if(this.props.subscribeUpdates)this.props.subscribeUpdates(this.state.data);
+            if(this.props.subscribeUpdates)this.props.subscribeUpdates(magneData);
         })
         this.setState({magHandler:magHandler});
     }
