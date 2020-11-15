@@ -135,6 +135,7 @@ class Sensor extends React.Component {
           if(this.state.wakeUpCallback !== null) {
             setTimeout(() =>{
               this.state.wakeUpCallback("monitorStill");
+              this.setState({wakeUpCallback: null})
             }, 100)
           }
         }

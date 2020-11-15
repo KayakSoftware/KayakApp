@@ -45,6 +45,7 @@ class SensorHandler extends React.Component {
             
             this.log("Requesting Position update")
             const position = await this.gps.current?.getPositionAsync(false, {maxAge: 0, requiredAccuracy: 1}, LocationAccuracy.High);
+            console.log(position);
             if(this.props.subscribeGpsUpdates)this.props.subscribeGpsUpdates(position);
             this.setState({lastPosition: position})
             
@@ -71,6 +72,8 @@ class SensorHandler extends React.Component {
             this.accelerometer.current?.monitorWakeUp(() => this.chooseUpdateStrategy());
             return;
         }
+
+
 
         // Static duty cycling
         this.evaluateSensorParameters();
