@@ -14,6 +14,19 @@ export default class MagnetometerSensor extends Component {
         }
     }
 
+    componentDidMount() {
+        console.log("Mounting Magnetometer for sensing heading")
+        if(this.props.headingMonitor) {
+            // Start sampling
+            this.startSampling();
+            Magnetometer.setUpdateInterval(this.props.headingMonitor.monitorSampleRate)
+        }
+    }
+
+    componentWillUnmount() {
+        this._unsubscribeUpdates();
+    }
+
     startSampling() {
         if(Magnetometer.isAvailableAsync())
             this._subscribeUpdates();
@@ -26,6 +39,7 @@ export default class MagnetometerSensor extends Component {
     _subscribeUpdates() {
         var magHandler = Magnetometer.addListener(magneData => {
             this.setState({data: magneData})
+            if(this.props.headingMonitor)this.props.headingMonitor.attachUpdates(magneData);
             if(this.props.subscribeUpdates)this.props.subscribeUpdates(magneData);
         })
         this.setState({magHandler:magHandler});

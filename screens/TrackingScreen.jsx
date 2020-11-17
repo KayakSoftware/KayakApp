@@ -283,9 +283,6 @@ class TrackingScreen extends React.Component {
 
                     subscribeBatteryUpdates={level => this.onBatteryUpdate(level.batteryLevel)}
 
-                    //enableCompas
-                    //subscribeCompasUpdates={direction => this.onDirectionUpdate(direction)}
-
                     ></SensorHandler>
                 </View>
             </View>

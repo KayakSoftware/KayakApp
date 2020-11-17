@@ -6,6 +6,8 @@ import Accelerometer from "../components/AccelerometerSensor";
 import Battery from "../components/Battery"; 
 import { View } from "react-native";
 import { LocationAccuracy } from "expo-location";
+import { getPositionAccuracyInMeter } from "./SensorUtilities";
+import { HeadingMonitor } from "./HeadingMonitor";
 
 class SensorHandler extends React.Component {
 
@@ -23,11 +25,15 @@ class SensorHandler extends React.Component {
             lastPosition: null,
             isStill: false,
             batteryLevel: null,
+            speedHistory: [],
             sensorParameters: {
                 usePositionCache: false,
                 cacheValidationRule: {maxAge: 0, requiredAccuracy: 1},
-                locationAccuracy: LocationAccuracy.High
-            }
+                locationAccuracy: LocationAccuracy.High,
+                positionThreshold: 30,
+                trajectoryThreshold: 40
+            },
+            headingMonitor: null
         }
     }
 
@@ -35,7 +41,6 @@ class SensorHandler extends React.Component {
     startEnabledSensors = () => {
         this.log("Starting Enabled Sensors")
         this.requestPosition();
-        this.gps.current?.sampleHeading();
 
         // simple subscribe sensors
         this.gyroscope.current?.startSampling();
@@ -46,15 +51,15 @@ class SensorHandler extends React.Component {
 
     requestPosition = async () => {
 
-       
         // Request initial GPS update
         try {
-            this.log("Requesting Position update")
+            this.log("Requesting Position update with accuracy level of: " + `${this.state.sensorParameters.locationAccuracy}`)
             const position = await this.gps.current?.getPositionAsync(
                 this.state.sensorParameters.usePositionCache, 
                 this.state.sensorParameters.cacheValidationRule, 
                 this.state.sensorParameters.locationAccuracy);
-                console.log(position)
+            this.setState({lastKnownSpeed: position.coords.speed})
+            this.state.speedHistory.push(position.coords.speed < 0 ? 0 : position.coords.speed)
             if(this.props.subscribeGpsUpdates)this.props.subscribeGpsUpdates(position);
             this.setState({lastPosition: position})
             
@@ -73,6 +78,13 @@ class SensorHandler extends React.Component {
 
     chooseUpdateStrategy = (origin) => {
 
+        this.log("Attach heading monitor")
+        this.monitorHeading();
+        return;
+
+        // Evaluate battery level and adjust parameters respectively
+        this.evaluateSensorParameters();
+
         this.log("Choosing update strategy from: " + origin)
 
         // If phone is still dont do updates
@@ -82,12 +94,45 @@ class SensorHandler extends React.Component {
             return;
         }
 
-        // Static duty cycling
-        this.evaluateSensorParameters();
-        this.log("Scheduling new position update in 5 seconds");
-        setTimeout(() => {
-            this.requestPosition();
-        }, 5000)
+        const speed = this.collectSpeed();
+
+        if (speed > 0) {
+            if (true) {
+                // Monitor heading
+                this.log("Attach heading monitor")
+                this.monitorHeading();
+            } else {
+                // Dynamic duty cycle
+                const deltaT = this.dynamicDutyCycle(speed);
+                this.log(`DynamicDutyCyling with deltaT of: ` + deltaT);
+                setTimeout(() => {
+                    this.requestPosition();
+                }, deltaT * 1000)
+            }
+        } else {
+            this.log("Scheduling Static duty cycle: 5 secs")
+            setTimeout(() => {
+                this.requestPosition();
+            }, 5000)
+        }
+    }
+
+    dynamicDutyCycle = (speed) => {
+        return ((Math.min(this.state.sensorParameters.positionThreshold, this.state.sensorParameters.trajectoryThreshold)) - getPositionAccuracyInMeter(this.state.sensorParameters.locationAccuracy)) / speed;
+    }
+
+    collectSpeed = () => {
+        if(this.state.speedHistory.length > 0) {
+
+            // if speed higher than normal distribution threshold then sample from normal distribution instead
+
+            return this.state.speedHistory[this.state.speedHistory.length -1];
+        }
+        return 0;
+    }
+
+    monitorHeading = () => {
+        this.setState({headingMonitor: new HeadingMonitor(this.collectSpeed, this.requestPosition, 1000)});
     }
 
     evaluateSensorParameters = () => {
@@ -150,52 +195,10 @@ class SensorHandler extends React.Component {
     }
 
     // ***** Magnetometer START *****
-    onCompasUpdate = (direction) => {
-        if(this.props.subscribeCompasUpdates) {
-            this.props.subscribeCompasUpdates(direction);
-        }
-
-        
-        let angle = 0;
-        let {x, y, z} = direction;
-
-        if (Math.atan2(y, x) >= 0) {
-            angle = Math.atan2(y, x) * (180 / Math.PI);
-        } else {
-            angle = (Math.atan2(y, x) + 2 * Math.PI) * (180 / Math.PI);
-        }
-
-        if (angle >= 22.5 && angle < 67.5) {
-            console.log("NE")
-          }
-          else if (angle >= 67.5 && angle < 112.5) {
-            console.log("E")
-          }
-          else if (angle >= 112.5 && angle < 157.5) {
-            console.log("SE");
-          }
-          else if (angle >= 157.5 && angle < 202.5) {
-            console.log("S")
-          }
-          else if (angle >= 202.5 && angle < 247.5) {
-            console.log("SW");
-          }
-          else if (angle >= 247.5 && angle < 292.5) {
-            console.log("W")
-          }
-          else if (angle >= 292.5 && angle < 337.5) {
-            console.log("NW")
-          }
-          else {
-            console.log("N")
-          }
-
-        console.log(Math.round(angle))
-    }
 
     renderMagnetometer = () => {
-        if(this.props.enableCompas) {
-            return <Magnetometer ref={this.magnetometer} subscribeUpdates={direction => this.onCompasUpdate(direction)} />
+        if(this.state.headingMonitor) {
+            return <Magnetometer ref={this.magnetometer} headingMonitor={this.state.headingMonitor}/>  
         }
     }
     // ***** Magnetometer END *****
