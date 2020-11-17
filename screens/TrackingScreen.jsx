@@ -13,6 +13,7 @@ import Magnetometer from '../components/MagnetometerSensor';
 import Accelerometer from "../components/AccelerometerSensor";
 import { idText } from 'typescript';
 import SensorHandler from '../features/SensorHandler';
+import { Vector } from '../features/Vector';
 
 class TrackingScreen extends React.Component {
 
@@ -63,6 +64,11 @@ class TrackingScreen extends React.Component {
               ]
             );
         })
+
+        let v = new Vector(1,1);
+        console.log(v.toString());
+        v.rotate(180);
+        console.log(v.toString());
     }
 
     getActivityIcon = () => {
