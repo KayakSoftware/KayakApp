@@ -121,6 +121,7 @@ class SensorHandler extends React.Component {
         return ((Math.min(this.state.sensorParameters.positionThreshold, this.state.sensorParameters.trajectoryThreshold)) - getPositionAccuracyInMeter(this.state.sensorParameters.locationAccuracy)) / speed;
     }
 
+    // Returns the speed in m/s
     collectSpeed = () => {
         if(this.state.speedHistory.length > 0) {
 

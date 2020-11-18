@@ -1,3 +1,5 @@
+import ThreeAxisSensor from "expo-sensors/build/ThreeAxisSensor";
+
 export class Vector {
 
     constructor(x, y) {
@@ -17,6 +19,10 @@ export class Vector {
 
     copy = () => {
         return new Vector(this.x, this.y);
+    }
+
+    magnitude = () => {
+        return Math.sqrt((this.x * this.x) + (this.y * this.y))
     }
 
     rotate = (angle) => {

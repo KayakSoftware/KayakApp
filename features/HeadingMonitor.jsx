@@ -1,3 +1,5 @@
+import {Vector} from "./Vector";
+
 export class HeadingMonitor {
 
     constructor(collectSpeed, requestPosition, monitorSampleRate) {
@@ -8,6 +10,7 @@ export class HeadingMonitor {
         this.rightAngles = [];
         this.initalOpposite = null;
         this.leftAngles = [];
+        this.totalLength = 0;
     }
 
 
@@ -33,6 +36,13 @@ export class HeadingMonitor {
                 this.leftAngles.push([this.initialAngle, this.initialAngle - 179].sort((a,b) => a-b))
                 this.rightAngles.push([this.initialAngle, 360], [0, (this.initialAngle + 180) % 360])
             }
+
+            // Describe the initial direction with a vector of length 1 out of the xAxis.
+            // representative of 1 meter in an arbitrary direction.
+            this.position = new Vector(1,0)
+            this.time = new Date().getTime();
+            this.totalLength = 1;
+
             return;
         }
 
@@ -77,8 +87,44 @@ export class HeadingMonitor {
             }
         }
 
-        console.log("angle: " + localAngle)
+        // get the sample speed
+        //const speed = 2;//this.collectSpeed();
+        //const time = new Date().getTime();
+        //const elapsedTime = time - this.time;
+        //this.time = time;
 
+        //var velocity = new Vector(speed, 0);
+        //velocity.multiply(time);
+        //velocity.rotate(localAngle);
+        //this.position.add(velocity);
+
+        // Check if the y component of position is greater than a certain value...
+        const now = new Date().getTime();
+        const elapsedSeconds = (now - this.time) / 1000
+        
+        const speed = 2;//this.collectSpeed();
+        const velocity = new Vector(speed, 0);
+
+        // scale length of velocity proportional to the timeStep
+        velocity.scale(elapsedSeconds);
+        this.totalLength += velocity.magnitude();
+
+        // rotate the vector
+        velocity.rotate(localAngle);
+        this.position.add(velocity);
+
+        //console.log(`elapsedSeconds: ${elapsedSeconds}`);
+        console.log("angle: " + localAngle)
+        console.log("meters traveled: " + this.totalLength)
+        console.log("positionMagnitude: " + this.position.magnitude())
+        console.log("positionY: " + this.position.y);
+
+
+        if(this.position.y > 30 || this.position.y < -30) {
+            console.log("Out of bounds request new position!")
+        }
+
+        this.time = now;
     }
 
     cleanUp = () => {
