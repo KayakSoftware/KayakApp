@@ -158,7 +158,7 @@ class TrackingScreen extends React.Component {
             timestamp: new Date().getTime(),
             accelerations: accelerations
         });
-
+        
         if(this.accelerometerBatch.length === 200) {
             const requestData = this.accelerometerBatch;
             this.accelerometerBatch = [];
@@ -278,7 +278,7 @@ class TrackingScreen extends React.Component {
                     
                     <SensorHandler
                     ref={this.sensorHandler}
-                    //immitateKayak={this.state.immitateKayak}
+                    immitateKayak={this.state.immitateKayak}
 
                     enableGPS 
                     subscribeGpsUpdates={(location) => this.onLocationUpdate(location)}

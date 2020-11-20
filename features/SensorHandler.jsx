@@ -78,10 +78,6 @@ class SensorHandler extends React.Component {
 
     chooseUpdateStrategy = (origin) => {
 
-        this.log("Attach heading monitor")
-        this.monitorHeading();
-        return;
-
         // Evaluate battery level and adjust parameters respectively
         this.evaluateSensorParameters();
 
@@ -99,18 +95,18 @@ class SensorHandler extends React.Component {
         if (speed > 0) {
             if (true) {
                 // Monitor heading
-                this.log("Attach heading monitor")
+                this.log(`Speed ${speed} - Attaching heading monitor`)
                 this.monitorHeading();
             } else {
                 // Dynamic duty cycle
                 const deltaT = this.dynamicDutyCycle(speed);
-                this.log(`DynamicDutyCyling with deltaT of: ` + deltaT);
+                this.log(`Speed known ${speed} - scheduling DynamicDutyCyling with deltaT of: ` + deltaT);
                 setTimeout(() => {
                     this.requestPosition();
                 }, deltaT * 1000)
             }
         } else {
-            this.log("Scheduling Static duty cycle: 5 secs")
+            this.log("Speed unknown - Scheduling Static duty cycle: 5 secs")
             setTimeout(() => {
                 this.requestPosition();
             }, 5000)
@@ -133,7 +129,21 @@ class SensorHandler extends React.Component {
     }
 
     monitorHeading = () => {
-        this.setState({headingMonitor: new HeadingMonitor(this.collectSpeed, this.requestPosition, 1000)});
+        // We could determine the monitor rate based on the speed
+        this.setState({headingMonitor: new HeadingMonitor(this.collectSpeed, this.monitorHeadingCallback, 5000)});
+    }
+
+    monitorHeadingCallback = () => {
+        // Unsubscribe magnetometer
+        this.magnetometer?.current._unsubscribeUpdates();
+        this.setState({headingMonitor: null});
+        this.requestPosition();
+    }
+
+    renderMagnetometer = () => {
+        if(this.state.headingMonitor) {
+            return <Magnetometer ref={this.magnetometer} headingMonitor={this.state.headingMonitor}/>  
+        }
     }
 
     evaluateSensorParameters = () => {
@@ -195,19 +205,10 @@ class SensorHandler extends React.Component {
         return <Battery ref={this.battery} subscribeBatteryUpdates={level => this.onBatteryLevelUpdate(level)} />
     }
 
-    // ***** Magnetometer START *****
-
-    renderMagnetometer = () => {
-        if(this.state.headingMonitor) {
-            return <Magnetometer ref={this.magnetometer} headingMonitor={this.state.headingMonitor}/>  
-        }
-    }
-    // ***** Magnetometer END *****
-
     // ***** Accelerometer START *****
     onAccelerationUpdate = (accelerations) => {
         if(!this.state.isStill) {
-            if(this.props.subscribeAccelerationUpdate) {
+            if(this.props.subscribeAccelerationUpdates) {
                 this.props.subscribeAccelerationUpdates(accelerations);
             }
         }

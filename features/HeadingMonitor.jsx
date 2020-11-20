@@ -2,6 +2,8 @@ import {Vector} from "./Vector";
 
 export class HeadingMonitor {
 
+    debug = false;
+
     constructor(collectSpeed, requestPosition, monitorSampleRate) {
         this.collectSpeed = collectSpeed;
         this.requestPositon = requestPosition;
@@ -87,17 +89,6 @@ export class HeadingMonitor {
             }
         }
 
-        // get the sample speed
-        //const speed = 2;//this.collectSpeed();
-        //const time = new Date().getTime();
-        //const elapsedTime = time - this.time;
-        //this.time = time;
-
-        //var velocity = new Vector(speed, 0);
-        //velocity.multiply(time);
-        //velocity.rotate(localAngle);
-        //this.position.add(velocity);
-
         // Check if the y component of position is greater than a certain value...
         const now = new Date().getTime();
         const elapsedSeconds = (now - this.time) / 1000
@@ -114,14 +105,15 @@ export class HeadingMonitor {
         this.position.add(velocity);
 
         //console.log(`elapsedSeconds: ${elapsedSeconds}`);
-        console.log("angle: " + localAngle)
-        console.log("meters traveled: " + this.totalLength)
-        console.log("positionMagnitude: " + this.position.magnitude())
-        console.log("positionY: " + this.position.y);
+        this.log("angle: " + localAngle)
+        this.log("meters traveled: " + this.totalLength)
+        this.log("positionMagnitude: " + this.position.magnitude())
+        this.log("positionY: " + this.position.y);
 
 
         if(this.position.y > 30 || this.position.y < -30) {
-            console.log("Out of bounds request new position!")
+            console.log("Out of error bounds - Scheduling new position request")
+            this.requestPositon();
         }
 
         this.time = now;
@@ -129,6 +121,12 @@ export class HeadingMonitor {
 
     cleanUp = () => {
 
+    }
+
+    log = (args) => {
+        if(this.debug) {
+            console.log(args);
+        }
     }
 }
 
